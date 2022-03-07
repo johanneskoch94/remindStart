@@ -62,8 +62,12 @@ configure_cfg <- function(scen,
       }
     }
 
-    # Drop NAs and add exact path to the fulldata.gdx where necessary
     gdxlist <- scen[path_gdx_list]
+    names(gdxlist) <- c(
+      "input.gdx", "input_ref.gdx", "input_refpolicycost.gdx", "input_bau.gdx", "input_carbonprice.gdx"
+    )
+
+    # Drop NAs and add exact path to the fulldata.gdx where necessary
     gdxlistFinal <- NULL
     for (i in seq_along(gdxlist)) {
       if (grepl("NA$",  gdxlist[i])) {
