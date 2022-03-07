@@ -21,7 +21,6 @@ loadAndCheckCfg <- function(cfgFile) {
   cfg
 }
 
-
 prepareRemind <- function(cfg, runCopy) {
   # Work in runCopy directory
   withr::local_dir(runCopy)
@@ -120,6 +119,12 @@ prepareRemind <- function(cfg, runCopy) {
     )
   }
 
+  # extract BAU emissions for NDC runs to set up emission goals for region where only some countries have a target
+  if ((!is.null(cfg$gms$carbonprice) && (cfg$gms$carbonprice == "NDC")) |
+      (!is.null(cfg$gms$carbonpriceRegi) && (cfg$gms$carbonpriceRegi == "NDC")) ){
+    prepare_NDC(as.character(cfg$files2export$start["input_bau.gdx"]), cfg)
+  }
+
   ############ update information ########################
   # update_info, which regional resolution and input data revision in cfg$model
   update_info(cfg, madrat::regionscode(cfg$regionmapping), cfg$revision)
@@ -198,7 +203,6 @@ prepareMagicc <- function(resultsDir, cm_magicc_config) {
     file.copy(magcfgFile, "./magicc/MAGCFG_USER.CFG")
   }
 }
-
 
 getReportData <- function(path_to_report, inputpath_mag = "magpie", inputpath_acc = "costs") {
   .bioenergy_price <- function(mag){
@@ -409,6 +413,7 @@ update_sets <- function(cfg, map) {
   gms::replace_in_file('core/sets.gms',content,"SETS",comment="***")
 }
 
+# Function to create the levs.gms, fixings.gms, and margs.gms files, used in delay scenarios.
 create_fixing_files <- function(cfg, input_ref_file = "input_ref.gdx") {
 
   # Start the clock.
@@ -439,6 +444,8 @@ create_fixing_files <- function(cfg, input_ref_file = "input_ref.gdx") {
 
 }
 
+# Function to create the levs.gms, fixings.gms, and margs.gms files, used in the standard (i.e. the non-macro
+# stand-alone) delay scenarios.
 create_standard_fixings <- function(cfg, ref_gdx_data) {
 
   # Declare empty lists to hold the strings for the 'manipulateFile' functions.
@@ -463,8 +470,8 @@ create_standard_fixings <- function(cfg, ref_gdx_data) {
   file.copy("levs.gms", "fixings.gms", overwrite = TRUE)
 
   fixings_manipulateThis <- c(fixings_manipulateThis, list(c(".L ", ".FX ")))
-  #cb q_co2eq is only "static" equation to be active before cm_startyear, as multigasscen could be different from a scenario to another that is   fixed on the first
-  #cb therefore, vm_co2eq cannot be fixed, otherwise infeasibilities would result. vm_co2eq.M is meaningless, is never used in the code (a   manipulateFile delete line command would be even better)
+  #cb q_co2eq is only "static" equation to be active before cm_startyear, as multigasscen could be different from a scenario to another that is fixed on the first
+  #cb therefore, vm_co2eq cannot be fixed, otherwise infeasibilities would result. vm_co2eq.M is meaningless, is never used in the code (a manipulateFile delete line command would be even better)
   #  manipulateFile("fixings.gms", list(c("vm_co2eq.FX ", "vm_co2eq.M ")))
 
   # Write marginal values to file
@@ -475,7 +482,7 @@ create_standard_fixings <- function(cfg, ref_gdx_data) {
     margs        <- c(margs, grep(str_years[i], ref_gdx_data, value = TRUE))
   }
   writeLines(margs, "margs.gms")
-  # temporary fix so that you can use older gdx for fixings - will become obsolete in the future and can be deleted once the next variable name   change is done
+  # temporary fix so that you can use older gdx for fixings - will become obsolete in the future and can be deleted once the next variable name change is done
   margs_manipulateThis <- c(margs_manipulateThis, list(c("q_taxrev","q21_taxrev")))
   # fixing for SPA runs based on ModPol input data
   margs_manipulateThis <- c(margs_manipulateThis,
@@ -539,6 +546,19 @@ create_standard_fixings <- function(cfg, ref_gdx_data) {
                               list(c("q40_CoalBound.M", "!!q40_CoalBound.M")))
   }
 
+  levs_manipulateThis <- c(levs_manipulateThis,
+                           list(c("vm_shBioFe.L","!!vm_shBioFe.L")))
+  fixings_manipulateThis <- c(fixings_manipulateThis,
+                              list(c("vm_shBioFe.FX","!!vm_shBioFe.FX")))
+  margs_manipulateThis <- c(margs_manipulateThis,
+                            list(c("vm_shBioFe.M", "!!vm_shBioFe.M")))
+
+  #RP filter out regipol items
+  if(grepl("off", cfg$gms$cm_implicitFE, ignore.case = T)){
+    margs_manipulateThis <- c(margs_manipulateThis,
+                              list(c("q47_implFETax.M", "!!q47_implFETax.M")))
+  }
+
   # Include fixings (levels) and marginals in full.gms at predefined position
   # in core/loop.gms.
   full_manipulateThis <- c(full_manipulateThis,
@@ -565,5 +585,3 @@ create_standard_fixings <- function(cfg, ref_gdx_data) {
   # Perform actual manipulation on full.gms, in single parse of the text.
   manipulateFile("full.gms", full_manipulateThis)
 }
-# -----------------------------------------------------------------
-# -----------------------------------------------------------------

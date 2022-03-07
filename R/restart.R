@@ -1,5 +1,5 @@
 # If restarting runs, then choose the folders and start runs
-restart <- function(remind) {
+restartRemind <- function(remind) {
   # Get path to output folder
   of <- file.path(remind, "output")
 

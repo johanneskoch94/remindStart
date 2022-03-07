@@ -32,7 +32,7 @@ start <- function(remind = ".", configFile = NULL, restart = FALSE, testOneRegi 
 
   # If desired, restart existing REMIND runs. Then stop.
   if (restart) {
-    restart(remind)
+    restartRemind(remind)
     stopQuietly()
   }
 
