@@ -134,3 +134,11 @@ gitCloneRemind <- function(from = "git@github.com:remindmodel/remind.git", to = 
 abort <- function(x) {
   rlang::abort(glue::glue(x))
 }
+
+
+# didremindfinish is TRUE if full.log exists with status: Normal completion
+didremindfinish <- function(fulldatapath) {
+  logpath <- paste0(stringr::str_sub(fulldatapath, 1, -14), "/full.log")
+  normalCompletion <- any(grep("*** Status: Normal completion", readLines(logpath, warn = FALSE), fixed = TRUE))
+  file.exists(logpath) && normalCompletion
+}
