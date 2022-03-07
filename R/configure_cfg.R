@@ -62,14 +62,8 @@ configure_cfg <- function(scen,
       }
     }
 
-    # Define path where the GDXs will be taken from
-    gdxlist <- c(input.gdx               = file.path(cfg$remind_folder, scen[["path_gdx"]]),
-                 input_ref.gdx           = file.path(cfg$remind_folder, scen[["path_gdx_ref"]]),
-                 input_refpolicycost.gdx = file.path(cfg$remind_folder, scen[["path_gdx_refpolicycost"]]),
-                 input_bau.gdx           = file.path(cfg$remind_folder, scen[["path_gdx_bau"]]),
-                 input_carbonprice.gdx   = file.path(cfg$remind_folder, scen[["path_gdx_carbonprice"]]))
-
     # Drop NAs and add exact path to the fulldata.gdx where necessary
+    gdxlist <- scen[path_gdx_list]
     gdxlistFinal <- NULL
     for (i in seq_along(gdxlist)) {
       if (grepl("NA$",  gdxlist[i])) {
@@ -77,7 +71,7 @@ configure_cfg <- function(scen,
       } else if (grepl("\\.gdx$",  gdxlist[i])){
         gdxlistFinal <- c(gdxlistFinal, gdxlist[i])
       } else {
-        h <- file.path(job_resultFolders[basename(gdxlist[i])], "fulldata.gdx")
+        h <- file.path(job_resultFolders[gdxlist[[i]]], "fulldata.gdx")
         names(h) <- names(gdxlist[i])
         gdxlistFinal <- c(gdxlistFinal, h)
       }
