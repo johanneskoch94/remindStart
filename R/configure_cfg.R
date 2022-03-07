@@ -19,7 +19,9 @@ configure_cfg <- function(scen,
     cfg$force_replace    <- TRUE # delete existing Results directory
   }
 
-  if (!is.null(userArgs$configFile)) cat("\n", row.names(scen), "\n") else cat("\n", cfg$title, "\n")
+  # To console
+  h <- if (!is.null(userArgs$configFile)) row.names(scen) else cfg$title
+  cat("\n", crayon::green(h), "\n")
 
   # The result folder is still placed in the original remind/ directory.
   # To that end, the cfg$results_folder template is modified:
@@ -62,10 +64,11 @@ configure_cfg <- function(scen,
       }
     }
 
-    gdxlist <- scen[path_gdx_list]
-    names(gdxlist) <- c(
-      "input.gdx", "input_ref.gdx", "input_refpolicycost.gdx", "input_bau.gdx", "input_carbonprice.gdx"
-    )
+    gdxlist <- c(input.gdx               = scen[["path_gdx"]],
+                 input_ref.gdx           = scen[["path_gdx_ref"]],
+                 input_refpolicycost.gdx = scen[["path_gdx_refpolicycost"]],
+                 input_bau.gdx           = scen[["path_gdx_bau"]],
+                 input_carbonprice.gdx   = scen[["path_gdx_carbonprice"]])
 
     # Drop NAs and add exact path to the fulldata.gdx where necessary
     gdxlistFinal <- NULL
