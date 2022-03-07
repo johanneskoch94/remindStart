@@ -1,29 +1,28 @@
 handleArgs <- function(remind, configFile, restart, testOneRegi) {
   # Check for command-line arguments
   a <- R.utils::commandArgs(trailingOnly = TRUE)
-
-  # If there are none, return function arguments as is
-  if (is.null(a) || identical(a, "--args")) {
-    checkUserArguments(remind, configFile, restart, testOneRegi)
-    return(list("remind" = remind,
-                "configFile" = configFile,
-                "testOneRegi" = testOneRegi,
-                "restart" = restart))
-  }
-
-  # Otherwise overwrite default function arguments with command-line arguments. If non-default function arguments
-  # conflict with command-line arguments, throw an error.
-  # Remove --args (i.e. the flag to signal that what comes after are the arguments)
-  a <- a[a != "--args"]
-  for (i in a) {
-    if (i == "--testOneRegi") testOneRegi <- TRUE
-    else if (i == "--restart") restart <- TRUE
-    else if (file.exists(i) && (is.null(configFile) || configFile == i)) configFile <- i
-    else abort("User error: unknown command line argument or file path. \\
+  if (!(is.null(a) || identical(a, "--args"))) {
+    # Overwrite default function arguments with command-line arguments. If non-default function arguments
+    # conflict with command-line arguments, throw an error.
+    # Remove --args (i.e. the flag to signal that what comes after are the arguments)
+    a <- a[a != "--args"]
+    for (i in a) {
+      if (i == "--testOneRegi") testOneRegi <- TRUE
+      else if (i == "--restart") restart <- TRUE
+      else if (file.exists(i) && (is.null(configFile) || configFile == i)) configFile <- i
+      else abort("User error: unknown command line argument or file path. \\
                Possible arguments are '--restart', '--testOneRegi'.")
+    }
   }
 
   checkUserArguments(remind, configFile, restart, testOneRegi)
+
+  # Make paths absolute
+  remind <- normalizePath(remind)
+  if (!is.null(configFile)) {
+    configFile <- normalizePath(configFile)
+  }
+
   list("remind" = remind,
        "configFile" = configFile,
        "testOneRegi" = testOneRegi,
