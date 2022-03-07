@@ -73,7 +73,7 @@ configure_cfg <- function(scen,
     # Drop NAs and add exact path to the fulldata.gdx where necessary
     gdxlistFinal <- NULL
     for (i in seq_along(gdxlist)) {
-      if (grepl("NA$",  gdxlist[i])) {
+      if (is.na(gdxlist[i])) {
         next
       } else if (grepl("\\.gdx$",  gdxlist[i])){
         gdxlistFinal <- c(gdxlistFinal, gdxlist[i])

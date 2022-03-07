@@ -578,10 +578,10 @@ create_standard_fixings <- function(cfg, ref_gdx_data) {
 
   # Perform actual manipulation on levs.gms, fixings.gms, and margs.gms in
   # single, respective, parses of the texts.
-  manipulateFile("levs.gms", levs_manipulateThis)
-  manipulateFile("fixings.gms", fixings_manipulateThis)
-  manipulateFile("margs.gms", margs_manipulateThis)
+  lucode2::manipulateFile("levs.gms", levs_manipulateThis)
+  lucode2::manipulateFile("fixings.gms", fixings_manipulateThis)
+  lucode2::manipulateFile("margs.gms", margs_manipulateThis)
 
   # Perform actual manipulation on full.gms, in single parse of the text.
-  manipulateFile("full.gms", full_manipulateThis)
+  lucode2::manipulateFile("full.gms", full_manipulateThis)
 }

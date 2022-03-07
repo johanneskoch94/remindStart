@@ -4,7 +4,7 @@ create_input_for_45_carbonprice_exogenous <- function(gdx) {
   # ---- Read data ----
 
   if (file.exists(gdx)) {
-    pr <- reportPrices(gdx)
+    pr <- remind2::reportPrices(gdx)
   } else {
     stop("No gdx file found to take the carbon price from - please provide gdx from a reference run in path_gdx_carbonprice in scenario_config file.")
   }
@@ -16,7 +16,7 @@ create_input_for_45_carbonprice_exogenous <- function(gdx) {
   # convert from $/tCO2 to $/kgC (or T$/GtC)
   pr <- pr / 1000 * 44 / 12
   # remove GLO region if it exists
-  if ("GLO" %in% getRegions(pr)) {
+  if ("GLO" %in% magclass::getRegions(pr)) {
     pr <- pr["GLO", , , invert = TRUE]
   }
 
@@ -38,8 +38,8 @@ create_input_for_45_carbonprice_exogenous <- function(gdx) {
 
   # Content
   # Loop over time dimension
-  for (y in getYears(pr)) {
-    for (r in getRegions(pr)) {
+  for (y in magclass::getYears(pr)) {
+    for (r in magclass::getRegions(pr)) {
       cat("p45_tau_co2_tax(\"", gsub("y", "", y), "\",\"", r, "\")=", pr[r, y, ], ";\n", sep = "", file = p_fpath, append = TRUE)
     }
   }

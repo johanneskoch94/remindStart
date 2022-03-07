@@ -11,7 +11,9 @@ read_scenario_cfg <- function(configFile, default.cfg = file.path(dirname(config
   settings[, path_gdx_list[!path_gdx_list %in% names(settings)]] <- NA
 
   # State if columns are unknown - in which case they will be ignored -, and stop for some outdated parameters.
+  cfg <- NULL
   source(default.cfg, local = TRUE)
+
   knownColumnNames <- c(names(cfg$gms), path_gdx_list, "start", "output", "model", "regionmapping", "inputRevision")
   unknownColumnNames <- names(settings)[!names(settings) %in% knownColumnNames]
   if (length(unknownColumnNames) > 0) {

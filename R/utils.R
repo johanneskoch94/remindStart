@@ -142,3 +142,40 @@ didremindfinish <- function(fulldatapath) {
   normalCompletion <- any(grep("*** Status: Normal completion", readLines(logpath, warn = FALSE), fixed = TRUE))
   file.exists(logpath) && normalCompletion
 }
+
+
+# Create the file to be used in the load mode
+getLoadFile <- function(cfg, cal_itr) {
+  file_name <- paste0(cfg$gms$cm_CES_configuration, "_ITERATION_", cal_itr, ".inc")
+  ces_in <- system("gdxdump fulldata.gdx symb=in NoHeader Format=CSV", intern = TRUE) %>%
+    gsub("\"", "", .)
+  expr_ces_in <- paste0("(", paste(ces_in, collapse = "|"), ")")
+
+
+  tmp <- system("gdxdump fulldata.gdx symb=pm_cesdata", intern = TRUE)[-(1:2)] %>%
+    grep("(quantity|price|eff|effgr|xi|rho|offset_quantity|compl_coef)", x = ., value = TRUE)
+  tmp <- tmp %>% grep(expr_ces_in, x = ., value = T)
+
+  tmp %>%
+    sub("'([^']*)'.'([^']*)'.'([^']*)'.'([^']*)' (.*)[ ,][ /];?",
+      "pm_cesdata(\"\\1\",\"\\2\",\"\\3\",\"\\4\") = \\5;",
+      x = .
+    ) %>%
+    write(file_name)
+
+
+  pm_cesdata_putty <- system("gdxdump fulldata.gdx symb=pm_cesdata_putty", intern = TRUE)
+  if (length(pm_cesdata_putty) == 2) {
+    tmp_putty <- gsub("^Parameter *([A-z_(,)])+cesParameters\\).*$", '\\1"quantity")  =   0;', pm_cesdata_putty[2])
+  } else {
+    tmp_putty <- pm_cesdata_putty[-(1:2)] %>%
+      grep("quantity", x = ., value = TRUE) %>%
+      grep(expr_ces_in, x = ., value = T)
+  }
+  tmp_putty %>%
+    sub("'([^']*)'.'([^']*)'.'([^']*)'.'([^']*)' (.*)[ ,][ /];?",
+      "pm_cesdata_putty(\"\\1\",\"\\2\",\"\\3\",\"\\4\") = \\5;",
+      x = .
+    ) %>%
+    write(file_name, append = T)
+}

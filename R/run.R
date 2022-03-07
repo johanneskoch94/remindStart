@@ -2,6 +2,7 @@ run <- function() {
   # Save start time
   timeGAMSStart <- Sys.time()
 
+  cfg <- NULL
   load("config.Rdata")
 
   # Display git information in log
@@ -49,48 +50,14 @@ run <- function() {
                     " -ps=0 -pw=185 -gdxcompress=1 -logoption=", cfg$logoption))
 
       # If GAMS found a solution
-      if (   file.exists("fulldata.gdx")
-             && file.info("fulldata.gdx")$mtime > fulldata_m_time) {
-
-        #create the file to be used in the load mode
-        getLoadFile <- function(){
-
-          file_name = paste0(cfg$gms$cm_CES_configuration,"_ITERATION_",cal_itr,".inc")
-          ces_in = system("gdxdump fulldata.gdx symb=in NoHeader Format=CSV", intern = TRUE) %>% gsub("\"","",.) #" This comment is just to   obtain correct syntax highlighting
-          expr_ces_in = paste0("(",paste(ces_in, collapse = "|") ,")")
-
-
-          tmp = system("gdxdump fulldata.gdx symb=pm_cesdata", intern = TRUE)[-(1:2)] %>%
-            grep("(quantity|price|eff|effgr|xi|rho|offset_quantity|compl_coef)", x = ., value = TRUE)
-          tmp = tmp %>% grep(expr_ces_in,x = ., value = T)
-
-          tmp %>%
-            sub("'([^']*)'.'([^']*)'.'([^']*)'.'([^']*)' (.*)[ ,][ /];?",
-                "pm_cesdata(\"\\1\",\"\\2\",\"\\3\",\"\\4\") = \\5;", x = .) %>%
-            write(file_name)
-
-
-          pm_cesdata_putty = system("gdxdump fulldata.gdx symb=pm_cesdata_putty", intern = TRUE)
-          if (length(pm_cesdata_putty) == 2){
-            tmp_putty =  gsub("^Parameter *([A-z_(,)])+cesParameters\\).*$",'\\1"quantity")  =   0;',  pm_cesdata_putty[2])
-          } else {
-            tmp_putty = pm_cesdata_putty[-(1:2)] %>%
-              grep("quantity", x = ., value = TRUE) %>%
-              grep(expr_ces_in,x = ., value = T)
-          }
-          tmp_putty %>%
-            sub("'([^']*)'.'([^']*)'.'([^']*)'.'([^']*)' (.*)[ ,][ /];?",
-                "pm_cesdata_putty(\"\\1\",\"\\2\",\"\\3\",\"\\4\") = \\5;", x = .)%>% write(file_name,append =T)
-        }
-
-        getLoadFile()
+      if (file.exists("fulldata.gdx") && file.info("fulldata.gdx")$mtime > fulldata_m_time) {
+        getLoadFile(cfg, cal_itr)
 
         # Store all the interesting output
         file.copy("full.lst", sprintf("full_%02i.lst", cal_itr), overwrite = TRUE)
         file.copy("full.log", sprintf("full_%02i.log", cal_itr), overwrite = TRUE)
         file.copy("fulldata.gdx", "input.gdx", overwrite = TRUE)
-        file.copy("fulldata.gdx", sprintf("input_%02i.gdx", cal_itr),
-                  overwrite = TRUE)
+        file.copy("fulldata.gdx", sprintf("input_%02i.gdx", cal_itr), overwrite = TRUE)
 
         # Update file modification time
         fulldata_m_time <- file.info("fulldata.gdx")$mtime
