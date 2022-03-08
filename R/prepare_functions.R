@@ -7,7 +7,7 @@ loadAndCheckCfg <- function(cfgFile) {
     modulepath = file.path(cfg$remind_folder, "modules"),
     reference_file = file.path(cfg$remind_folder, "config/default.cfg"),
     settings_config = file.path(cfg$remind_folder, "config/settings_config.csv"),
-    extras = c("remind_folder", "gitInfo")
+    extras = c("remind_folder", "gitInfo", "regionscode")
   )
 
   # Check for compatibility with subsidizeLearning
@@ -19,189 +19,6 @@ loadAndCheckCfg <- function(cfgFile) {
     cfg$gms$subsidizeLearning <- "off"
   }
   cfg
-}
-
-prepareRemind <- function(cfg, runCopy) {
-  # Work in runCopy directory
-  withr::local_dir(runCopy)
-
-
-  # Copy MAGICC
-  if (!file.exists(cfg$magicc_template) & file.exists(path.expand(Sys.getenv("MAGICC")))) {
-    cfg$magicc_template <- path.expand(Sys.getenv("MAGICC"))
-  }
-
-  if (file.exists(cfg$magicc_template)) {
-    cat("Copying MAGICC files from", cfg$magicc_template, "to results folder\n")
-    system(paste0("cp -rp ", cfg$magicc_template, " ", cfg$results_folder))
-    system(paste0("cp -rp core/magicc/* ", cfg$results_folder, "/magicc/"))
-  } else {
-    cat("Could not copy", cfg$magicc_template, "because it does not exist\n")
-  }
-
-  ###########################################################
-  ### PROCESSING INPUT DATA ###################### START ####
-  ###########################################################
-  # adjust GDPpcScen based on GDPscen
-  cfg$gms$c_GDPpcScen <- gsub("gdp_", "", cfg$gms$cm_GDPscen)
-
-  # Create input file with exogenous CO2 tax using the CO2 price from another run
-  if (!is.null(cfg$gms$carbonprice) &&
-      (cfg$gms$carbonprice == "exogenous") &&
-      (!is.na(cfg$files2export$start["input_carbonprice.gdx"]))) {
-    cat(paste(
-      "\n Run scripts/input/create_input_for_45_carbonprice_exogenous.R to create",
-      "input file with exogenous CO2 tax from another run.\n"
-    ))
-    create_input_for_45_carbonprice_exogenous(as.character(cfg$files2export$start["input_carbonprice.gdx"]))
-  }
-
-  # Calculate CES configuration string
-  cfg$gms$cm_CES_configuration <- paste0(
-    "indu_", cfg$gms$industry, "-",
-    "buil_", cfg$gms$buildings, "-",
-    "tran_", cfg$gms$transport, "-",
-    "POP_", cfg$gms$cm_POPscen, "-",
-    "GDP_", cfg$gms$cm_GDPscen, "-",
-    "En_", cfg$gms$cm_demScen, "-",
-    "Kap_", cfg$gms$capitalMarket, "-",
-    if (cfg$gms$cm_calibration_string == "off") "" else paste0(cfg$gms$cm_calibration_string, "-"),
-    "Reg_", madrat::regionscode(cfg$regionmapping)
-  )
-
-  # write name of corresponding CES file to datainput.gms
-  gms::replace_in_file(
-    file = "./modules/29_CES_parameters/load/datainput.gms",
-    content = paste0('$include "./modules/29_CES_parameters/load/input/', cfg$gms$cm_CES_configuration, '.inc"'),
-    subject = "CES INPUT"
-  )
-
-  # If a path to a MAgPIE report is supplied use it as REMIND intput (used for REMIND-MAgPIE coupling)
-  # ATTENTION: modifying gms files
-  if (!is.null(cfg$pathToMagpieReport)) {
-    getReportData(path_to_report = cfg$pathToMagpieReport, inputpath_mag = cfg$gms$biomass, inputpath_acc = cfg$gms$agCosts)
-  }
-
-  # Update module paths in GAMS code
-  gms::update_modules_embedding()
-
-  # Check all setglobal settings for consistency
-  gms::settingsCheck()
-
-  # configure main model gms file (cfg$model) based on settings of cfg file
-  cfg$gms$c_expname <- cfg$title
-
-  # run main.gms if not further specified
-  if (is.null(cfg$model)) cfg$model <- "main.gms"
-  lucode2::manipulateConfig(cfg$model, cfg$gms)
-
-
-  ############ download and distribute input data ########
-  # check wheather the regional resolution and input data revision are outdated and update data if needed
-  input_old <- if (file.exists("input/source_files.log")) readLines("input/source_files.log")[1] else "no_data"
-
-  input_new <- c(
-    paste0("rev", cfg$inputRevision, "_", madrat::regionscode(cfg$regionmapping), "_", tolower(cfg$model_name), ".tgz"),
-    paste0("rev", cfg$inputRevision, "_", madrat::regionscode(cfg$regionmapping), "_", tolower(cfg$validationmodel_name), ".tgz"),
-    paste0("CESparametersAndGDX_", cfg$CESandGDXversion, ".tgz")
-  )
-
-  if (!setequal(input_new, input_old) | cfg$force_download) {
-    if (is.null(cfg$repositories)) {
-      rlang::abort("No remind_repos option defined.")
-    }
-    cat("Your input data is outdated or in a different regional resolution. New data will be downloaded and distributed.\n")
-    gms::download_distribute(
-      files = input_new,
-      repositories = cfg$repositories, # defined in your local .Rprofile or on the cluster /p/projects/rd3mod/R/.Rprofile
-      modelfolder = ".",
-      debug = FALSE
-    )
-  }
-
-  # extract BAU emissions for NDC runs to set up emission goals for region where only some countries have a target
-  if ((!is.null(cfg$gms$carbonprice) && (cfg$gms$carbonprice == "NDC")) |
-      (!is.null(cfg$gms$carbonpriceRegi) && (cfg$gms$carbonpriceRegi == "NDC")) ){
-    prepare_NDC(as.character(cfg$files2export$start["input_bau.gdx"]), cfg)
-  }
-
-  ############ update information ########################
-  # update_info, which regional resolution and input data revision in cfg$model
-  update_info(cfg, madrat::regionscode(cfg$regionmapping), cfg$revision)
-  # update_sets, which is updating the region-depending sets in core/sets.gms
-  #-- load new mapping information
-  map <- utils::read.csv(cfg$regionmapping, sep = ";")
-  update_sets(cfg, map)
-
-  ########################################################
-  ### PROCESSING INPUT DATA ###################### END ###
-  ########################################################
-
-  ### ADD MODULE INFO IN SETS  ############# START #######
-  content <- NULL
-  modification_warning <- c(
-    "*** THIS CODE IS CREATED AUTOMATICALLY, DO NOT MODIFY THESE LINES DIRECTLY",
-    "*** ANY DIRECT MODIFICATION WILL BE LOST AFTER NEXT MODEL START",
-    "*** CHANGES CAN BE DONE USING THE RESPECTIVE LINES IN scripts/start_functions.R"
-  )
-  content <- c(modification_warning, "", "sets")
-  content <- c(content, "", '       modules "all the available modules"')
-  content <- c(content, "       /", paste0("       ", gms::getModules("modules/")[, "name"]), "       /")
-  content <- c(content, "", 'module2realisation(modules,*) "mapping of modules and active realisations" /')
-  content <- c(content, paste0("       ", gms::getModules("modules/")[, "name"], " . %", gms::getModules("modules/")[, "name"], "%"))
-  content <- c(content, "      /", ";")
-  gms::replace_in_file("core/sets.gms", content, "MODULES", comment = "***")
-  ### ADD MODULE INFO IN SETS  ############# END #########
-
-  # Copy right gdx file to the output folder
-  gdx_name <- paste0("config/gdx-files/", cfg$gms$cm_CES_configuration, ".gdx")
-  if (0 != system(paste("cp", gdx_name, file.path(cfg$results_folder, "input.gdx")))) {
-    stop("Could not copy gdx file ", gdx_name)
-  }
-
-  # Choose which conopt files to copy
-  cfg$files2export$start <- sub("conopt3", cfg$gms$cm_conoptv, cfg$files2export$start)
-
-  # Copy important files into output_folder (before REMIND execution)
-  copyFromList(cfg$files2export$start, cfg$results_folder)
-
-  # Save configuration
-  save(cfg, file = file.path(cfg$results_folder, "config.Rdata"))
-  yaml::write_yaml(cfg, file = file.path(cfg$results_folder, "cfg.txt"))
-
-  # Merge GAMS files
-  cat("\n################\nCreating full.gms ...")
-  gms::singleGAMSfile(mainfile = cfg$model, output = file.path(cfg$results_folder, "full.gms"))
-  cat(" done.\n################\n\n\n")
-
-  # Collect run statistics (will be saved to central database in submit.R)
-  lucode2::runstatistics(
-    file = paste0(cfg$results_folder, "/runstatistics.rda"),
-    user = Sys.info()[["user"]],
-    date = Sys.time(),
-    version_management = "git",
-    revision = cfg$gitInfo$commit,
-    # revision_date = try(as.POSIXct(system("git show -s --format=%ci", intern=TRUE), silent=TRUE)),
-    status = cfg$gitInfo$status
-  )
-}
-
-prepareMagicc <- function(resultsDir, cm_magicc_config) {
-  # Work in base_copy directory
-  withr::local_dir(resultsDir)
-
-  try_copy <- try(file.copy("magicc/run_magicc.R", "run_magicc.R"))
-  try_copy <- try(file.copy("magicc/run_magicc_temperatureImpulseResponse.R", "run_magicc_temperatureImpulseResponse.R"))
-  try_copy <- try(file.copy("magicc/read_DAT_TOTAL_ANTHRO_RF.R", "read_DAT_TOTAL_ANTHRO_RF.R"))
-  try_copy <- try(file.copy("magicc/read_DAT_SURFACE_TEMP.R", "read_DAT_SURFACE_TEMP.R"))
-
-  # Set MAGCFG file
-  magcfgFile <- paste0("./magicc/MAGCFG_STORE/", "MAGCFG_USER_", toupper(cm_magicc_config), ".CFG")
-  if (!file.exists(magcfgFile)) {
-    warning(paste("ERROR in MAGGICC configuration: Could not find file ", magcfgFile))
-  } else {
-    file.copy(magcfgFile, "./magicc/MAGCFG_USER.CFG")
-  }
 }
 
 getReportData <- function(path_to_report, inputpath_mag = "magpie", inputpath_acc = "costs") {
@@ -422,8 +239,7 @@ create_fixing_files <- function(cfg, input_ref_file = "input_ref.gdx") {
   # Extract data from input_ref.gdx file and store in levs_margs_ref.gms.
   system(paste("gdxdump",
                input_ref_file,
-               "Format=gamsbas Delim=comma FilterDef=N Output=levs_margs_ref.gms",
-               sep = " "))
+               "Format=gamsbas Delim=comma FilterDef=N Output=levs_margs_ref.gms"))
 
   # Read data from levs_margs_ref.gms.
   ref_gdx_data <- suppressWarnings(readLines("levs_margs_ref.gms"))
@@ -438,10 +254,8 @@ create_fixing_files <- function(cfg, input_ref_file = "input_ref.gdx") {
   print(manipulate_runtime)
   cat("\n")
 
-
   # Delete file.
   file.remove("levs_margs_ref.gms")
-
 }
 
 # Function to create the levs.gms, fixings.gms, and margs.gms files, used in the standard (i.e. the non-macro

@@ -44,7 +44,7 @@ start <- function(remind = ".", configFile = NULL, restart = FALSE, testOneRegi 
     cli::cli_progress_done()
   } else {
     scenarios <- data.frame("default" = "default", row.names = "default")
-    cli::cli_alert_success("Starting REMIND run configured with: config/default.cfg")
+    cli::cli_alert_success("Starting REMIND run configured with: {remind}/config/default.cfg")
   }
 
   # Saving Git information (do so now, so as not have to copy the .git folder in the next step)

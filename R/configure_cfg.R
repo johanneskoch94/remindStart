@@ -9,7 +9,7 @@ configure_cfg <- function(scen,
   cfg$slurmConfig   <- slurmConfig
   cfg$remind_folder <- getwd()
   cfg$gitInfo       <- gitInfo
-  cfg$logoption     <- 2 # log output written to file (not to screen)
+  cfg$logoption     <- 2 # log output written to file
 
   if (userArgs$testOneRegi) {
     cfg$title            <- 'testOneRegi'
@@ -26,8 +26,6 @@ configure_cfg <- function(scen,
   # The result folder is still placed in the original remind/ directory.
   # To that end, the cfg$results_folder template is modified:
   cfg$results_folder <- file.path(userArgs$remind, cfg$results_folder)
-
-
 
   # Configure cfg based on settings from csv if provided
   if (!is.null(userArgs$configFile)) {
@@ -92,45 +90,28 @@ configure_cfg <- function(scen,
     wait_for_ids <- NULL
   }
 
+  # Further config settings - set after cfg.csv files are loaded
+  cfg$gms$c_expname <- cfg$title
+  if (is.null(cfg$model)) cfg$model <- "main.gms"
+  cfg$gms$c_GDPpcScen <- gsub("gdp_", "", cfg$gms$cm_GDPscen)
+  # Suppress madrat start-up messages
+  cfg$regionscode <- suppressMessages(madrat::regionscode(cfg$regionmapping))
+  cfg$gms$cm_CES_configuration <- paste0(
+    "indu_", cfg$gms$industry, "-",
+    "buil_", cfg$gms$buildings, "-",
+    "tran_", cfg$gms$transport, "-",
+    "POP_", cfg$gms$cm_POPscen, "-",
+    "GDP_", cfg$gms$cm_GDPscen, "-",
+    "En_", cfg$gms$cm_demScen, "-",
+    "Kap_", cfg$gms$capitalMarket, "-",
+    if (cfg$gms$cm_calibration_string == "off") "" else paste0(cfg$gms$cm_calibration_string, "-"),
+    "Reg_", cfg$regionscode
+  )
+
+
   if (slurmConfig == "direct") {
     return(cfg)
   } else {
     return(list("cfg" = cfg, "wait_for_ids" = wait_for_ids))
   }
 }
-
-
-create_results_folder <- function(cfg){
-
-  # Generate name of results folder and create the folder
-  date <- format(Sys.time(), "_%Y-%m-%d_%H.%M.%S")
-  cfg$results_folder <- gsub(":date:", date, cfg$results_folder, fixed = TRUE)
-  cfg$results_folder <- gsub(":title:", cfg$title, cfg$results_folder, fixed = TRUE)
-
-  # Create results folder
-  if (!file.exists(cfg$results_folder)) {
-    dir.create(cfg$results_folder, recursive = TRUE, showWarnings = FALSE)
-    cat("   Creating results folder", cfg$results_folder, "\n")
-  } else if (!cfg$force_replace) {
-    stop(paste0("Results folder ", cfg$results_folder," could not be created because it already exists."))
-  } else {
-    cat("   Overwriting existing results folder:", cfg$results_folder, "\n")
-    unlink(cfg$results_folder, recursive = TRUE)
-    dir.create(cfg$results_folder, recursive = TRUE, showWarnings = FALSE)
-  }
-
-  # Save the cfg (with the updated name of the result folder) into the results folder.
-  # Do not save the new name of the results folder to the .RData file in REMINDs main folder, because it
-  # might be needed to restart subsequent runs manually and should not contain the time stamp in this case.
-  save(cfg, file = file.path(cfg$results_folder, "config.Rdata"))
-
-  cfg
-}
-
-
-
-
-
-
-
-

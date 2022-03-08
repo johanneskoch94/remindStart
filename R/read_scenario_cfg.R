@@ -124,7 +124,7 @@ read_scenario_cfg <- function(configFile, default.cfg = file.path(dirname(config
   while (length(ordered_scenarios) < dim(scenarios)[1]) {
     next_up <- scenarios %>%
       dplyr::filter(
-        !row.names(.) %in% ordered_scenarios,
+        !row.names(scenarios) %in% ordered_scenarios,
         dplyr::if_all(dplyr::all_of(path_gdx_list), ~ is.na(.x) | .x %in% ordered_scenarios | grepl("\\.gdx$", .x))
       ) %>%
       row.names()
