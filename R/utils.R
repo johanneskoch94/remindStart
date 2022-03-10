@@ -128,7 +128,11 @@ run_test <- function() {
 }
 
 
-gitCloneRemind <- function(from = "git@github.com:remindmodel/remind.git", to = ".") {
+gitCloneRemind <- function(from = "git@github.com:remindmodel/remind.git", to = "remind") {
+  system(paste("git clone", from, to))
+}
+
+gitCloneMagpie <- function(from = "git@github.com:magpiemodel/magpie.git", to = "magpie") {
   system(paste("git clone", from, to))
 }
 
@@ -176,4 +180,12 @@ getLoadFile <- function(cfg, cal_itr) {
             x = tmp_putty),
         file_name,
         append = TRUE)
+}
+
+
+# delete entries in stack that contain needle and append new
+.setgdxcopy <- function(needle, stack, new) {
+  matches <- grepl(needle, stack)
+  out <- c(stack[!matches], new)
+  return(out)
 }

@@ -147,5 +147,18 @@ create_dependency_string <- function(wait_for, type = "afterok") {
   out
 }
 
-
+submit <- function(cfg) {
+  cfg <- create_results_folder(cfg)
+  withr::with_dir(cfg$results_folder, {
+    load("config.Rdata")
+    prepareRemind(cfg, cfg$remind_folder)
+    prepareMagicc(cfg, cfg$remind_folder)
+    if (cfg$gms$cm_startyear > 2005 && (!file.exists("levs.gms.gz") || !file.exists("levs.gms"))) {
+      create_fixing_files(cfg)
+    }
+    run()
+    postProc()
+  })
+  cfg$results_folder
+}
 
