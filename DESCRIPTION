@@ -1,6 +1,6 @@
 Package: remindStart
 Title: Start the REMIND Integrated Assessment Model 
-Version: 0.0.0.9000
+Version: 0.0.0.9001
 Authors@R: 
     person("Johannes", "Koch", , "jokoch@pik-potsdam.de", role = c("aut", "cre"))
 Description: Start the REMIND Integrated Assessment Model.
@@ -30,3 +30,4 @@ Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 URL: https://johanneskoch94.github.io/remindStart/
+Date: 2022-03-11

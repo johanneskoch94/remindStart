@@ -6,3 +6,7 @@
 ^docs$
 ^pkgdown$
 ^\.github$
+^\.buildlibrary$
+^\.pre-commit-config\.yaml$
+^workflow$
+^.*\.zenodo.json$
