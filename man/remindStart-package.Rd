@@ -8,6 +8,13 @@
 \description{
 Start the REMIND Integrated Assessment Model.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://johanneskoch94.github.io/remindStart/}
+}
+
+}
 \author{
 \strong{Maintainer}: Johannes Koch \email{jokoch@pik-potsdam.de}
 

@@ -1,21 +1,35 @@
-# Paths to the files where scenarios are defined
-# path_settings_remind contains the detailed configuration of the REMIND scenarios
-# path_settings_coupled defines which runs will be started, coupling infos, and optimal gdx and report information that overrides path_settings_remind
-#
-# You can put a prefix in front of the names of your runs, this will turn e.g. "SSP2-Base" into "prefix_SSP2-Base".
-# This allows storing results of multiple coupled runs (which have the same scenario names) in the same MAgPIE and REMIND output folders.
-# !Currently not working for prefixes different from "C_". "C_" is hard-coded elsewhere!
-#
-# If there are existing runs you would like to take the gdxes (REMIND) or reportings (REMIND or MAgPIE) from, provide the path here and the name prefix below.
-# Note: the scenario names of the old runs have to be identical to the runs that are to be started. If they differ please provide the names of the old scenarios in the
-# file that you specified on path_settings_coupled (scenario_config_coupled_xxx.csv).
-#
-# If you want the script to find gdxs or reports of older runs as starting point for new runs please
-# provide the prefix of the old run names so the script can find them.
-#
-# Number of coupling iterations (before final iteration) in which MAgPIE uses higher n600 resolution.
-# Until "max_iteration - n600_iterations" iteration MAgPIE runs with n200 resolution.
-# Afterwards REMIND runs for "n600_iterations" iterations with results from higher resolution.
+#' start_bundle_coupled
+#'
+#' Start coupled runs
+#'
+#' @param path_remind Path to the remind model
+#' @param path_magpie Path to the mapie model
+#' @param path_settings_coupled path_settings_coupled defines which runs will be started, coupling infos, and optimal
+#'   gdx and report information that overrides path_settings_remind
+#' @param path_settings_remind path_settings_remind contains the detailed configuration of the REMIND scenarios
+#' @param prefix_runname "C_"
+#' @param path_remind_oldruns If there are existing runs you would like to take the gdxes (REMIND) or reportings
+#'   (REMIND or MAgPIE) from, provide the path here and the name prefix below. Note: the scenario names of the old runs
+#'   have to be identical to the runs that are to be started. If they differ please provide the names of the old
+#'   scenarios in the file that you specified on path_settings_coupled (scenario_config_coupled_xxx.csv).
+#' @param path_magpie_oldruns If there are existing runs you would like to take the gdxes (REMIND) or reportings
+#'   (REMIND or MAgPIE) from, provide the path here and the name prefix below. Note: the scenario names of the old runs
+#'   have to be identical to the runs that are to be started. If they differ please provide the names of the old
+#'   scenarios in the file that you specified on path_settings_coupled (scenario_config_coupled_xxx.csv).
+#' @param prefix_oldruns If you want the script to find gdxs or reports of older runs as starting point for new runs
+#'   please provide the prefix of the old run names so the script can find them.
+#' @param max_iterations Integer
+#' @param n600_iterations Number of coupling iterations (before final iteration) in which MAgPIE uses higher n600
+#'   resolution. Until "max_iteration - n600_iterations" iteration MAgPIE runs with n200 resolution. Afterwards REMIND
+#'   runs for "n600_iterations" iterations with results from higher resolution.
+#' @param test Logical. Set to TRUE to test function.
+#'
+#' @export
+#'
+#' @examples \dontrun{
+#' # Start start_bundle_coupled runs
+#' start_bundle_coupled("remind/", "magpie/", "remind/config/file1.csv", "remind/config/file2.csv")
+#' }
 start_bundle_coupled <- function(path_remind,
                                  path_magpie,
                                  path_settings_coupled,
