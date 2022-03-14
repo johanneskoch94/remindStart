@@ -5,6 +5,14 @@ run <- function() {
   cfg <- NULL
   load("config.Rdata")
 
+  # If mock, create dummy files and return
+  if (cfg$mock) {
+    cat("THIS IS A MOCK RUN!\n")
+    file.copy("input.gdx", "fulldata.gdx")
+    file.create("full.log", "full.lst")
+    return()
+  }
+
   # Display git information in log
   cat(cfg$gitInfo$info_str, "\n")
 

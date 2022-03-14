@@ -49,9 +49,6 @@ prepareRemind <- function(cfg, runCopy) {
   )
 
   if (!setequal(input_new, input_old) | cfg$force_download) {
-    if (is.null(cfg$repositories)) {
-      rlang::abort("No remind_repos option defined.")
-    }
     cat("Your input data is outdated or in a different regional resolution. New data will be downloaded and distributed.\n")
     gms::download_distribute(
       files = input_new,

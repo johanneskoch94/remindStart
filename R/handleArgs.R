@@ -1,4 +1,4 @@
-handleArgs <- function(remind, configFile, restart, testOneRegi) {
+handleArgs <- function(remind, configFile, restart, testOneRegi, mock) {
   # Check for command-line arguments
   a <- R.utils::commandArgs(trailingOnly = TRUE)
   if (!(is.null(a) || identical(a, "--args"))) {
@@ -15,7 +15,7 @@ handleArgs <- function(remind, configFile, restart, testOneRegi) {
     }
   }
 
-  checkUserArguments(remind, configFile, restart, testOneRegi)
+  checkUserArguments(remind, configFile, restart, testOneRegi, mock)
 
   # Make paths absolute
   remind <- normalizePath(remind)
@@ -26,10 +26,11 @@ handleArgs <- function(remind, configFile, restart, testOneRegi) {
   list("remind" = remind,
        "configFile" = configFile,
        "testOneRegi" = testOneRegi,
-       "restart" = restart)
+       "restart" = restart,
+       "mock" = mock)
 }
 
-checkUserArguments <- function(remind, configFile, restart, testOneRegi) {
+checkUserArguments <- function(remind, configFile, restart, testOneRegi, mock) {
   if (!all(c("config", "core", "modules", "scripts", "standalone", "tutorials") %in% dir(remind))) {
     abort("Bad remind argument. Does not point to a remind directory.")
   }
@@ -44,6 +45,10 @@ checkUserArguments <- function(remind, configFile, restart, testOneRegi) {
 
   if (!is.logical(testOneRegi)) {
     abort("Bad testOneRegi argument. Must be TRUE or FALSE.")
+  }
+
+  if (!is.logical(mock)) {
+    abort("Bad mock argument. Must be TRUE or FALSE.")
   }
 
   # Check for incompatibilities

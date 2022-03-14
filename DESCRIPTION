@@ -11,6 +11,7 @@ RoxygenNote: 7.1.2
 Imports: 
     cli,
     crayon,
+    curl,
     dplyr,
     gdx,
     glue,

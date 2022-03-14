@@ -6,6 +6,15 @@ postProc <- function() {
   # Load 'cfg'
   load("config.Rdata")
 
+  # If mock, create dummy files and return
+  if (cfg$mock) {
+    cat("THIS IS A MOCK RUN!\n")
+    file.create(paste0("REMIND_generic_", cfg$title, ".mif"),
+                paste0("REMIND_generic_", cfg$title, "_withoutPlus.mif"),
+                paste0("REMIND_LCOE_", cfg$title, ".mif"))
+    return()
+  }
+
   # Change directory
   setwd("../../")
 

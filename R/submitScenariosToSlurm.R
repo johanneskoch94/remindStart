@@ -16,7 +16,7 @@ submitScenariosToSlurm <- function(userArgs, scenarios, gitInfo, base_copy) {
 
   for (scen in row.names(scenarios)) {
     # Configure cfg
-    l <- configure_cfg(scenarios[scen,], gitInfo, userArgs, slurmConfig, job_ids, job_resultFolders)
+    l <- configure_cfg(scenarios[scen,], gitInfo, userArgs, job_resultFolders, slurmConfig, job_ids)
     cfg <- l$cfg
     wait_for_ids <- l$wait_for_ids
 

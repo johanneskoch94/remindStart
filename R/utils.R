@@ -1,3 +1,28 @@
+checkOptions <- function() {
+  if (is.null(getOption("remind_repos"))) {
+    abort("No 'remind_repos' option found. Set the option 'remind_repos' in your .Rpofile to be able to download \\
+          input data.")
+  }
+  repos <- getOption("remind_repos")
+  # If direct paths are given (only names of NULL objects), then check if they exist
+  if (all(sapply(repos, is.null))) {
+    if (!all(sapply(names(repos), file.exists))) {
+      abort("Can't find remind_repos. Check that the paths in the 'remind_repos' option exist.")
+    }
+  # If a SCP/SSH details are provided, check if ssh setup works.
+  } else {
+    for (i in seq_along(repos)) {
+      h <- try(curl::new_handle(verbose = FALSE, .list = repos[[i]]), silent = TRUE)
+      t <- try(curl::curl_download(file.path(names(repos[i]), "fileForDownloadTest.txt"), "tmpTest.txt", handle = h))
+      if ("try-error" %in% class(t)) {
+        abort("Could not download test file from repo {names(x)}. Something went wrong")
+      } else {
+        unlink("tmpTest.txt")
+      }
+    }
+  }
+}
+
 getGitInfo <- function(remind) {
   # Work in remind directory
   withr::local_dir(remind)
@@ -100,31 +125,6 @@ copyRemind <- function(from,
   }
 
   system(rsync_cmd)
-}
-
-
-prepare_test <- function() {
-  load("config.Rdata")
-
-  # Copy right gdx file to the output folder
-  gdx_name <- paste0("config/gdx-files/", cfg$gms$cm_CES_configuration, ".gdx")
-  if (0 != system(paste('cp', gdx_name, file.path(cfg$results_folder, 'input.gdx')))) {
-    warning('Could not copy gdx file ', gdx_name)
-  }
-
-  # Choose which conopt files to copy
-  cfg$files2export$start <- sub("conopt3", cfg$gms$cm_conoptv, cfg$files2export$start)
-
-  # Copy important files into output_folder (before REMIND execution)
-  copyFromList(cfg$files2export$start, cfg$results_folder)
-
-  # Save configuration
-  save(cfg, file = "config.Rdata")
-}
-
-run_test <- function() {
-  load("config.Rdata")
-  system("copy input.gdx fulldata.gdx")
 }
 
 

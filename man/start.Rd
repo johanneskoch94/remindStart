@@ -4,7 +4,13 @@
 \alias{start}
 \title{start}
 \usage{
-start(remind = ".", configFile = NULL, restart = FALSE, testOneRegi = FALSE)
+start(
+  remind = ".",
+  configFile = NULL,
+  restart = FALSE,
+  testOneRegi = FALSE,
+  mock = FALSE
+)
 }
 \arguments{
 \item{remind}{A character vector with the path to the remind main-folder. By default, it is assumed that the working
@@ -15,6 +21,8 @@ directory is the remind main-folder.}
 \item{restart}{TRUE or FALSE}
 
 \item{testOneRegi}{TRUE or FALSE}
+
+\item{mock}{TRUE or FALSE. Used in testing. Set to TRUE to test the start procedure.}
 }
 \description{
 Start the REMIND model.

@@ -1,15 +1,18 @@
 configure_cfg <- function(scen,
                           gitInfo,
                           userArgs,
+                          prevScenResultFolders,
                           slurmConfig = "direct",
-                          job_ids = NULL,
-                          job_resultFolders = NULL) {
+                          job_ids = NULL) {
 
   source("config/default.cfg", local = TRUE)
+  cfg$title         <- row.names(scen)
   cfg$slurmConfig   <- slurmConfig
   cfg$remind_folder <- getwd()
   cfg$gitInfo       <- gitInfo
+  cfg$mock          <- userArgs$mock
   cfg$logoption     <- 2 # log output written to file
+
 
   if (userArgs$testOneRegi) {
     cfg$title            <- 'testOneRegi'
@@ -20,8 +23,8 @@ configure_cfg <- function(scen,
   }
 
   # To console
-  h <- if (!is.null(userArgs$configFile)) row.names(scen) else cfg$title
-  cat("\n", crayon::green(h), "\n")
+  cat("\n", crayon::green(cfg$title), "\n")
+  cat("   Configuring cfg for", cfg$title, "\n")
 
   # The result folder is still placed in the original remind/ directory.
   # To that end, the cfg$results_folder template is modified:
@@ -29,20 +32,6 @@ configure_cfg <- function(scen,
 
   # Configure cfg based on settings from csv if provided
   if (!is.null(userArgs$configFile)) {
-    # Check if this scen is dependent on other jobs finishing before it can start. If so, then
-    # the ids, and the pathways to the folders, of the jobs they depend on have to be determined.
-
-    path_gdx_list <- c("path_gdx", "path_gdx_ref", "path_gdx_refpolicycost", "path_gdx_bau", "path_gdx_carbonprice")
-
-    cond <- path_gdx_list[!is.na(scen[path_gdx_list]) & !grepl("\\.gdx$", scen[path_gdx_list])]
-    depends <- unique(as.character(scen[cond]))
-
-    wait_for_ids <- if (length(depends) == 0) NULL else job_ids[depends]
-
-    # Edit run title
-    cfg$title <- row.names(scen)
-    message("   Configuring cfg for ", row.names(scen))
-
     # Edit main model file, region settings and input data revision based on scenarios table, if cell non-empty
     for (switchname in intersect(c("model", "regionmapping", "inputRevision"), names(scen))) {
       if (!is.na(scen[[switchname]] )) {
@@ -76,7 +65,7 @@ configure_cfg <- function(scen,
       } else if (grepl("\\.gdx$",  gdxlist[i])){
         gdxlistFinal <- c(gdxlistFinal, gdxlist[i])
       } else {
-        h <- file.path(job_resultFolders[gdxlist[[i]]], "fulldata.gdx")
+        h <- file.path(prevScenResultFolders[gdxlist[[i]]], "fulldata.gdx")
         names(h) <- names(gdxlist[i])
         gdxlistFinal <- c(gdxlistFinal, h)
       }
@@ -86,8 +75,6 @@ configure_cfg <- function(scen,
     cfg$files2export$start <- c(cfg$files2export$start, gdxlistFinal)
 
     cfg
-  } else {
-    wait_for_ids <- NULL
   }
 
   # Further config settings - set after cfg.csv files are loaded
@@ -112,6 +99,14 @@ configure_cfg <- function(scen,
   if (slurmConfig == "direct") {
     return(cfg)
   } else {
+    if (!is.null(userArgs$configFile)) {
+      # Check if this scen is dependent on other jobs finishing before it can start. If so, then
+      # the ids, and the pathways to the folders, of the jobs they depend on have to be determined.
+      path_gdx_list <- c("path_gdx", "path_gdx_ref", "path_gdx_refpolicycost", "path_gdx_bau", "path_gdx_carbonprice")
+      cond <- path_gdx_list[!is.na(scen[path_gdx_list]) & !grepl("\\.gdx$", scen[path_gdx_list])]
+      depends <- unique(as.character(scen[cond]))
+      wait_for_ids <- if (length(depends) != 0 && slurmConfig != "direct") job_ids[depends] else NULL
+    }
     return(list("cfg" = cfg, "wait_for_ids" = wait_for_ids))
   }
 }
