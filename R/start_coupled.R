@@ -64,7 +64,9 @@ start_coupled <- function(coupled_config, debug = FALSE) {
   load(coupled_config)
 
   # save folder in which this script is executed
-  mainwd <- getwd()
+  mainwd <- normalizePath(getwd())
+  path_remind <- paste0(normalizePath(path_remind), "/")
+  path_magpie <- paste0(normalizePath(path_magpie), "/")
 
   # Retrieve REMIND settings
   cfg_rem <- gms::check_config(cfg_rem, paste0(path_remind, "config/default.cfg"), paste0(path_remind, "modules"))

@@ -362,6 +362,7 @@ start_bundle_coupled <- function(path_remind,
 
     cfg_rem$remind_folder <- normalizePath(path_remind) # TODO
     cfg_rem$gitInfo <- getGitInfo(cfg_rem$remind_folder) # TODO
+    cfg_rem$mock <- FALSE # TODO
     # Further config settings - set after cfg.csv files are loaded
     cfg_rem$gms$c_expname <- cfg_rem$title <- scen
     if (is.null(cfg_rem$model)) cfg_rem$model <- "main.gms"
