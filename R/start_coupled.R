@@ -300,19 +300,19 @@ start_coupled <- function(coupled_config, debug = FALSE) {
     report_mag <- mag_report_keep_in_mind
   }
   cat("Joining to a common reporting file:\n    ", report_rem, "\n    ", report_mag, "\n")
-  tmp1 <- read.report(report_rem, as.list = FALSE)
-  tmp2 <- read.report(report_mag, as.list = FALSE)[, getYears(tmp1), ]
-  tmp3 <- mbind(tmp1, tmp2)
-  getNames(tmp3, dim = 1) <- gsub("-(rem|mag)-[0-9]{1,2}", "", getNames(tmp3, dim = 1)) # remove -rem-xx and mag-xx from scenario names
+  tmp1 <- magclass::read.report(report_rem, as.list = FALSE)
+  tmp2 <- magclass::read.report(report_mag, as.list = FALSE)[, magclass::getYears(tmp1), ]
+  tmp3 <- magclass::mbind(tmp1, tmp2)
+  magclass::getNames(tmp3, dim = 1) <- gsub("-(rem|mag)-[0-9]{1,2}", "", magclass::getNames(tmp3, dim = 1)) # remove -rem-xx and mag-xx from scenario names
   # only harmonize model names to REMIND-MAgPIE, if there are no variable names that are identical across the models
-  if (any(getNames(tmp3[, , "REMIND"], dim = 3) %in% getNames(tmp3[, , "MAgPIE"], dim = 3))) {
+  if (any(magclass::getNames(tmp3[, , "REMIND"], dim = 3) %in% magclass::getNames(tmp3[, , "MAgPIE"], dim = 3))) {
     msg <- "Cannot produce common REMIND-MAgPIE reporting because there are identical variable names in both models!\n"
     cat(msg)
     warning(msg)
   } else {
     # Replace REMIND and MAgPIE with REMIND-MAgPIE
     # getNames(tmp3,dim=2) <- gsub("REMIND|MAgPIE","REMIND-MAGPIE",getNames(tmp3,dim=2))
-    write.report(tmp3, file = paste0("output/", runname, ".mif"))
+    magclass::write.report(tmp3, file = paste0("output/", runname, ".mif"))
   }
 
   # set required variables and execute script to create convergence plots

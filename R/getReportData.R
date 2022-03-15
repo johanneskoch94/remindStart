@@ -1,7 +1,7 @@
 getReportData <- function(path_to_report, inputpath_mag = "magpie", inputpath_acc = "costs") {
   .bioenergy_price <- function(mag) {
-    notGLO <- getRegions(mag)[!(getRegions(mag) == "GLO")]
-    if ("Demand|Bioenergy|++|2nd generation (EJ/yr)" %in% getNames(mag)) {
+    notGLO <- magclass::getRegions(mag)[!(magclass::getRegions(mag) == "GLO")]
+    if ("Demand|Bioenergy|++|2nd generation (EJ/yr)" %in% magclass::getNames(mag)) {
       # MAgPIE 4
       out <- mag[, , "Prices|Bioenergy (US$05/GJ)"] * 0.0315576 # with transformation factor from US$2005/GJ to US$2005/Wa
     } else {
@@ -10,11 +10,11 @@ getReportData <- function(path_to_report, inputpath_mag = "magpie", inputpath_ac
     }
     out["JPN", is.na(out["JPN", , ]), ] <- 0
     dimnames(out)[[3]] <- NULL # Delete variable name to prevent it from being written into output file
-    write.magpie(out[notGLO, , ], paste0("./modules/30_biomass/", inputpath_mag, "/input/p30_pebiolc_pricemag_coupling.csv"), file_type = "csvr")
+    magclass::write.magpie(out[notGLO, , ], paste0("./modules/30_biomass/", inputpath_mag, "/input/p30_pebiolc_pricemag_coupling.csv"), file_type = "csvr")
   }
   .bioenergy_costs <- function(mag) {
-    notGLO <- getRegions(mag)[!(getRegions(mag) == "GLO")]
-    if ("Production Cost|Agriculture|Biomass|Energy Crops (million US$2005/yr)" %in% getNames(mag)) {
+    notGLO <- magclass::getRegions(mag)[!(magclass::getRegions(mag) == "GLO")]
+    if ("Production Cost|Agriculture|Biomass|Energy Crops (million US$2005/yr)" %in% magclass::getNames(mag)) {
       out <- mag[, , "Production Cost|Agriculture|Biomass|Energy Crops (million US$2005/yr)"] / 1000 / 1000 # with transformation factor from 10E6 US$2005 to 10E12 US$2005
     } else {
       # in old MAgPIE reports the unit is reported to be "billion", however the values are in million
@@ -22,11 +22,11 @@ getReportData <- function(path_to_report, inputpath_mag = "magpie", inputpath_ac
     }
     out["JPN", is.na(out["JPN", , ]), ] <- 0
     dimnames(out)[[3]] <- NULL
-    write.magpie(out[notGLO, , ], paste0("./modules/30_biomass/", inputpath_mag, "/input/p30_pebiolc_costsmag.csv"), file_type = "csvr")
+    magclass::write.magpie(out[notGLO, , ], paste0("./modules/30_biomass/", inputpath_mag, "/input/p30_pebiolc_costsmag.csv"), file_type = "csvr")
   }
   .bioenergy_production <- function(mag) {
-    notGLO <- getRegions(mag)[!(getRegions(mag) == "GLO")]
-    if ("Demand|Bioenergy|2nd generation|++|Bioenergy crops (EJ/yr)" %in% getNames(mag)) {
+    notGLO <- magclass::getRegions(mag)[!(magclass::getRegions(mag) == "GLO")]
+    if ("Demand|Bioenergy|2nd generation|++|Bioenergy crops (EJ/yr)" %in% magclass::getNames(mag)) {
       # MAgPIE 4
       out <- mag[, , "Demand|Bioenergy|2nd generation|++|Bioenergy crops (EJ/yr)"] / 31.536 # EJ to TWa
     } else {
@@ -36,7 +36,7 @@ getReportData <- function(path_to_report, inputpath_mag = "magpie", inputpath_ac
     out[which(out < 0)] <- 0 # set negative values to zero since they cause errors in GMAS power function
     out["JPN", is.na(out["JPN", , ]), ] <- 0
     dimnames(out)[[3]] <- NULL
-    write.magpie(out[notGLO, , ], paste0("./modules/30_biomass/", inputpath_mag, "/input/p30_pebiolc_demandmag_coupling.csv"), file_type = "csvr")
+    magclass::write.magpie(out[notGLO, , ], paste0("./modules/30_biomass/", inputpath_mag, "/input/p30_pebiolc_demandmag_coupling.csv"), file_type = "csvr")
   }
   .emissions_mac <- function(mag) {
     # define three columns of dataframe:
@@ -47,7 +47,7 @@ getReportData <- function(path_to_report, inputpath_mag = "magpie", inputpath_ac
     #   28/44,        # Tg N2O/yr =  Mt N2O/yr -> Mt N/yr
     #   1/1000*12/44, # Mt CO2/yr -> Gt CO2/yr -> Gt C/yr
     map <- data.frame(emirem = NULL, emimag = NULL, factor_mag2rem = NULL, stringsAsFactors = FALSE)
-    if ("Emissions|N2O|Land|Agriculture|+|Animal Waste Management (Mt N2O/yr)" %in% getNames(mag)) {
+    if ("Emissions|N2O|Land|Agriculture|+|Animal Waste Management (Mt N2O/yr)" %in% magclass::getNames(mag)) {
       # MAgPIE 4 (up to date)
       map <- rbind(map, data.frame(emimag = "Emissions|CO2|Land|+|Land-use Change (Mt CO2/yr)", emirem = "co2luc", factor_mag2rem = 1 / 1000 * 12 / 44, stringsAsFactors = FALSE))
       map <- rbind(map, data.frame(emimag = "Emissions|N2O|Land|Agriculture|+|Animal Waste Management (Mt N2O/yr)", emirem = "n2oanwstm", factor_mag2rem = 28 / 44, stringsAsFactors = FALSE))
@@ -59,7 +59,7 @@ getReportData <- function(path_to_report, inputpath_mag = "magpie", inputpath_ac
       map <- rbind(map, data.frame(emimag = "Emissions|CH4|Land|Agriculture|+|Rice (Mt CH4/yr)", emirem = "ch4rice", factor_mag2rem = 1, stringsAsFactors = FALSE))
       map <- rbind(map, data.frame(emimag = "Emissions|CH4|Land|Agriculture|+|Animal waste management (Mt CH4/yr)", emirem = "ch4anmlwst", factor_mag2rem = 1, stringsAsFactors = FALSE))
       map <- rbind(map, data.frame(emimag = "Emissions|CH4|Land|Agriculture|+|Enteric fermentation (Mt CH4/yr)", emirem = "ch4animals", factor_mag2rem = 1, stringsAsFactors = FALSE))
-    } else if ("Emissions|N2O-N|Land|Agriculture|+|Animal Waste Management (Mt N2O-N/yr)" %in% getNames(mag)) {
+    } else if ("Emissions|N2O-N|Land|Agriculture|+|Animal Waste Management (Mt N2O-N/yr)" %in% magclass::getNames(mag)) {
       # MAgPIE 4 (intermediate - wrong units)
       map <- rbind(map, data.frame(emimag = "Emissions|CO2|Land|+|Land-use Change (Mt CO2/yr)", emirem = "co2luc", factor_mag2rem = 1 / 1000 * 12 / 44, stringsAsFactors = FALSE))
       map <- rbind(map, data.frame(emimag = "Emissions|N2O-N|Land|Agriculture|+|Animal Waste Management (Mt N2O-N/yr)", emirem = "n2oanwstm", factor_mag2rem = 28 / 44, stringsAsFactors = FALSE))
@@ -95,7 +95,7 @@ getReportData <- function(path_to_report, inputpath_mag = "magpie", inputpath_ac
     # Read data from MAgPIE report and convert to REMIND data, collect in 'out' object
     out <- NULL
     for (i in 1:nrow(map)) {
-      tmp <- setNames(mag[, , map[i, ]$emimag], map[i, ]$emirem)
+      tmp <- magclass::setNames(mag[, , map[i, ]$emimag], map[i, ]$emirem)
       tmp <- tmp * map[i, ]$factor_mag2rem
       # tmp["JPN",is.na(tmp["JPN",,]),] <- 0
       # preliminary fix 20160111
@@ -124,35 +124,35 @@ getReportData <- function(path_to_report, inputpath_mag = "magpie", inputpath_ac
       }
 
       # Add emission variable to full dataframe
-      out <- mbind(out, tmp)
+      out <- magclass::mbind(out, tmp)
     }
 
     # Write REMIND input file
-    notGLO <- getRegions(mag)[!(getRegions(mag) == "GLO")]
+    notGLO <- magclass::getRegions(mag)[!(magclass::getRegions(mag) == "GLO")]
     filename <- paste0("./core/input/f_macBaseMagpie_coupling.cs4r")
-    write.magpie(out[notGLO, , ], filename)
+    magclass::write.magpie(out[notGLO, , ], filename)
     write(paste0("*** EOF ", filename, " ***"), file = filename, append = TRUE)
   }
   .agriculture_costs <- function(mag) {
-    notGLO <- getRegions(mag)[!(getRegions(mag) == "GLO")]
+    notGLO <- magclass::getRegions(mag)[!(magclass::getRegions(mag) == "GLO")]
     out <- mag[, , "Costs|MainSolve w/o GHG Emissions (million US$05/yr)"] / 1000 / 1000 # with transformation factor from 10E6 US$2005 to 10E12 US$2005
     out["JPN", is.na(out["JPN", , ]), ] <- 0
     dimnames(out)[[3]] <- NULL # Delete variable name to prevent it from being written into output file
-    write.magpie(out[notGLO, , ], paste0("./modules/26_agCosts/", inputpath_acc, "/input/p26_totLUcost_coupling.csv"), file_type = "csvr")
+    magclass::write.magpie(out[notGLO, , ], paste0("./modules/26_agCosts/", inputpath_acc, "/input/p26_totLUcost_coupling.csv"), file_type = "csvr")
   }
   .agriculture_tradebal <- function(mag) {
-    notGLO <- getRegions(mag)[!(getRegions(mag) == "GLO")]
+    notGLO <- magclass::getRegions(mag)[!(magclass::getRegions(mag) == "GLO")]
     out <- mag[, , "Trade|Agriculture|Trade Balance (billion US$2005/yr)"] / 1000 # with transformation factor from 10E9 US$2005 to 10E12 US$2005
     out["JPN", is.na(out["JPN", , ]), ] <- 0
     dimnames(out)[[3]] <- NULL
-    write.magpie(out[notGLO, , ], paste0("./modules/26_agCosts/", inputpath_acc, "/input/trade_bal_reg.rem.csv"), file_type = "csvr")
+    magclass::write.magpie(out[notGLO, , ], paste0("./modules/26_agCosts/", inputpath_acc, "/input/trade_bal_reg.rem.csv"), file_type = "csvr")
   }
 
-  rep <- read.report(path_to_report, as.list = FALSE)
-  if (length(getNames(rep, dim = "scenario")) != 1) stop("getReportData: MAgPIE data contains more or less than 1 scenario.")
-  rep <- collapseNames(rep) # get rid of scenrio and model dimension if they exist
+  rep <- magclass::read.report(path_to_report, as.list = FALSE)
+  if (length(magclass::getNames(rep, dim = "scenario")) != 1) stop("getReportData: MAgPIE data contains more or less than 1 scenario.")
+  rep <- magclass::collapseNames(rep) # get rid of scenrio and model dimension if they exist
   years <- 2000 + 5 * (1:30)
-  mag <- time_interpolate(rep, years)
+  mag <- magclass::time_interpolate(rep, years)
   .bioenergy_price(mag)
   # .bioenergy_costs(mag) # Obsolete since bioenergy costs are not calculated by MAgPIE anymore but by integrating the supplycurve
   .bioenergy_production(mag)
