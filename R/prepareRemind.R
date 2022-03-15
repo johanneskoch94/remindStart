@@ -26,7 +26,9 @@ prepareRemind <- function(cfg, runCopy) {
   # If a path to a MAgPIE report is supplied use it as REMIND intput (used for REMIND-MAgPIE coupling)
   # ATTENTION: modifying gms files
   if (!is.null(cfg$pathToMagpieReport)) {
-    getReportData(path_to_report = cfg$pathToMagpieReport, inputpath_mag = cfg$gms$biomass, inputpath_acc = cfg$gms$agCosts)
+    getReportData(path_to_report = cfg$pathToMagpieReport,
+                  inputpath_mag = cfg$gms$biomass,
+                  inputpath_acc = cfg$gms$agCosts)
   }
 
   # Update module paths in GAMS code
