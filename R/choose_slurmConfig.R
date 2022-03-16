@@ -1,8 +1,3 @@
-
-#' choose_slurmConfig
-#'
-#' @return comp
-#'
 choose_slurmConfig <- function() {
 
   cat(crayon::yellow("\nPlease choose the SLURM configuration for your submission:\n"))

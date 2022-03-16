@@ -52,7 +52,7 @@ runs for "n600_iterations" iterations with results from higher resolution.}
 \item{test}{Logical. Set to TRUE to test function.}
 }
 \description{
-Start coupled runs
+Start coupled REMIND and MAGPIE runs
 }
 \examples{
 \dontrun{

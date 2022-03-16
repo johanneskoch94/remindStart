@@ -1,6 +1,6 @@
 #' start_bundle_coupled
 #'
-#' Start coupled runs
+#' Start coupled REMIND and MAGPIE runs
 #'
 #' @param path_remind Path to the remind model
 #' @param path_magpie Path to the mapie model
