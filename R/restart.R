@@ -4,7 +4,7 @@ restartRemind <- function(remind) {
   of <- file.path(remind, "output")
 
   # Choose results folder from list
-  outputdirs <- choose_folder(of, "Please choose the runs to be restarted")
+  outputdirs <- chooseFolder(of, "Please choose the runs to be restarted")
 
   for (i in outputdirs) {
     cat("\nRestarting", i, "\n")
@@ -14,12 +14,12 @@ restartRemind <- function(remind) {
 
     # Overwrite results_folder in cfg with name of the folder the user wants to restart,
     # because user might have renamed the folder before restarting
-    cfg$results_folder <- i
+    cfg$results_folder <- i # nolint
 
     if (slurmIsAvailable()) {
       # Update the slurmConfig setting to what the user chooses
-      cfg$slurmConfig <- combine_slurmConfig(cfg$slurmConfig, choose_slurmConfig())
-      submit_remind_run(cfg)
+      cfg$slurmConfig <- combineSlurmConfig(cfg$slurmConfig, chooseSlurmConfig())
+      submitRemindRun(cfg)
     } else {
       withr::with_dir(cfg$results_folder, run())
     }

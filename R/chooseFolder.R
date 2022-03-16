@@ -1,4 +1,4 @@
-choose_folder <- function(folder, title = "Please choose a folder") {
+chooseFolder <- function(folder, title = "Please choose a folder") {
   dirs <- NULL
 
   # Detect all output folders containing fulldata.gdx or non_optimal.gdx
@@ -36,7 +36,7 @@ choose_folder <- function(folder, title = "Please choose a folder") {
     answer <- get_line()
     if(answer=="y"){
       return(dirs[id+1])
-    } else choose_folder(folder,title)
+    } else chooseFolder(folder,title)
     #
   } else if(any(dirs[identifier] == "all")){
     identifier <- 2:length(dirs)

@@ -12,7 +12,9 @@ prepare <- function() {
   cat(cfg$gitInfo$info_str)
 
   # Creating a copy of remind to prepare the run in isolation, then delete the tmp runCopy.
-  runCopy <- paste0(dirname(cfg$remind_folder), "/tmp_remind_", cfg$title, format(Sys.time(), "_%Y-%m-%d_%H.%M.%S"), "/")
+  runCopy <- paste0(
+    dirname(cfg$remind_folder), "/tmp_remind_", cfg$title, format(Sys.time(), "_%Y-%m-%d_%H.%M.%S"), "/"
+  )
   copyRemind(from = cfg$remind_folder, to = runCopy)
   prepareRemind(cfg, runCopy)
   prepareMagicc(cfg, runCopy)
@@ -35,6 +37,6 @@ prepare <- function() {
   )
 
   # Print run time
-  prep_time <- timePrepareEnd - timePrepareStart
-  cat("Preparation completed in", round(as.numeric(prep_time), 2), units(prep_time), "\n")
+  prepTime <- timePrepareEnd - timePrepareStart
+  cat("Preparation completed in", round(as.numeric(prepTime), 2), units(prepTime), "\n")
 }

@@ -36,15 +36,15 @@ start <- function(remind = ".", configFile = NULL, restart = FALSE, testOneRegi 
   # assume that the R session was not started from the remind folder, and that the .Rprofile hasn't yet been sourced.
   cli::cli_progress_step("Checking global options. Specifically the connection to the input data folders.")
   if (getwd() != remind) invisible(utils::capture.output(suppressMessages(
-    source(file.path(remind, ".Rprofile"), local = TRUE)
+    source(file.path(remind, ".Rprofile"), local = TRUE) # nolint
   )))
   checkOptions()
   cli::cli_progress_done()
 
-  # If desired, restart existing REMIND runs. Then stop.
+  # If desired, restart existing REMIND runs. Then stop quietly.
   if (restart) {
     restartRemind(remind)
-    stopQuietly()
+    withr::with_options(list(show.error.messages = FALSE), stop())
   }
 
   # If not restarting runs, get the scenarios to be run. If no configFile exists then a single default scenario

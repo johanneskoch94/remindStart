@@ -76,16 +76,6 @@ slurmIsAvailable <- function() {
   suppressWarnings(ifelse(system2("srun", stdout = FALSE, stderr = FALSE) != 127, TRUE, FALSE))
 }
 
-
-
-# Little function to stop without printing an error
-stopQuietly <- function() {
-  opt <- options(show.error.messages = FALSE)
-  on.exit(options(opt))
-  stop()
-}
-
-
 createTmpBaseCopy <- function(remind, scenarios) {
   base_copy <- paste0(file.path(dirname(remind), "tmp_remind_base"), format(Sys.time(), "_%Y-%m-%d_%H.%M.%S"), "/")
 

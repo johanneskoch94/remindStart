@@ -1,4 +1,4 @@
-configure_cfg <- function(scen,
+configureCfg <- function(scen,
                           gitInfo,
                           userArgs,
                           prevScenResultFolders,
@@ -105,8 +105,8 @@ configure_cfg <- function(scen,
       path_gdx_list <- c("path_gdx", "path_gdx_ref", "path_gdx_refpolicycost", "path_gdx_bau", "path_gdx_carbonprice")
       cond <- path_gdx_list[!is.na(scen[path_gdx_list]) & !grepl("\\.gdx$", scen[path_gdx_list])]
       depends <- unique(as.character(scen[cond]))
-      wait_for_ids <- if (length(depends) != 0 && slurmConfig != "direct") job_ids[depends] else NULL
+      waitForIds <- if (length(depends) != 0 && slurmConfig != "direct") job_ids[depends] else NULL
     }
-    return(list("cfg" = cfg, "wait_for_ids" = wait_for_ids))
+    return(list("cfg" = cfg, "waitForIds" = waitForIds))
   }
 }

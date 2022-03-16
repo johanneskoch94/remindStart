@@ -1,4 +1,4 @@
-create_results_folder <- function(cfg){
+createResultsFolder <- function(cfg){
 
   # Generate name of results folder and create the folder
   date <- format(Sys.time(), "_%Y-%m-%d_%H.%M.%S")
