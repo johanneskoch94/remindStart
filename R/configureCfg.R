@@ -95,18 +95,14 @@ configureCfg <- function(scen,
     "Reg_", cfg$regionscode
   )
 
-
-  if (slurmConfig == "direct") {
-    return(cfg)
-  } else {
-    if (!is.null(userArgs$configFile)) {
-      # Check if this scen is dependent on other jobs finishing before it can start. If so, then
-      # the ids, and the pathways to the folders, of the jobs they depend on have to be determined.
-      path_gdx_list <- c("path_gdx", "path_gdx_ref", "path_gdx_refpolicycost", "path_gdx_bau", "path_gdx_carbonprice")
-      cond <- path_gdx_list[!is.na(scen[path_gdx_list]) & !grepl("\\.gdx$", scen[path_gdx_list])]
-      depends <- unique(as.character(scen[cond]))
-      waitForIds <- if (length(depends) != 0 && slurmConfig != "direct") job_ids[depends] else NULL
-    }
-    return(list("cfg" = cfg, "waitForIds" = waitForIds))
+  if (slurmConfig != "direct" && !is.null(userArgs$configFile)) {
+    # Check if this scen is dependent on other jobs finishing before it can start. If so, then
+    # the ids, and the pathways to the folders, of the jobs they depend on have to be determined.
+    path_gdx_list <- c("path_gdx", "path_gdx_ref", "path_gdx_refpolicycost", "path_gdx_bau", "path_gdx_carbonprice")
+    cond <- path_gdx_list[!is.na(scen[path_gdx_list]) & !grepl("\\.gdx$", scen[path_gdx_list])]
+    depends <- unique(as.character(scen[cond]))
+    if (length(depends) != 0) cfg$waitForIds <- job_ids[depends]
   }
+
+  cfg
 }
