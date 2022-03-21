@@ -7,7 +7,7 @@ loadAndCheckCfg <- function(cfgFile) {
     modulepath = file.path(cfg$remind_folder, "modules"),
     reference_file = file.path(cfg$remind_folder, "config/default.cfg"),
     settings_config = file.path(cfg$remind_folder, "config/settings_config.csv"),
-    extras = c("remind_folder", "gitInfo", "regionscode", "mock")
+    extras = c("remind_folder", "gitInfo", "regionscode")
   )
 
   # Check for compatibility with subsidizeLearning

@@ -7,7 +7,6 @@
 #' @param configFile NULL or a character vector with the path to a scenario config csv file.
 #' @param restart TRUE or FALSE
 #' @param testOneRegi TRUE or FALSE
-#' @param mock TRUE or FALSE. Used in testing. Set to TRUE to test the start procedure.
 #'
 #' @export
 #'
@@ -24,10 +23,10 @@
 #' # Start from the command line
 #' Rscript -e "remindStart::start()" --args config/my_config.csv
 #' }
-start <- function(remind = ".", configFile = NULL, restart = FALSE, testOneRegi = FALSE, mock = FALSE) {
+start <- function(remind = ".", configFile = NULL, restart = FALSE, testOneRegi = FALSE) {
   # Take into account that this function may be called from the command-line directly, and that the command-line
   # arguments may overwrite the default/given function arguments.
-  userArgs <- handleArgs(normalizePath(remind), configFile, restart, testOneRegi, mock)
+  userArgs <- handleArgs(normalizePath(remind), configFile, restart, testOneRegi)
   invisible(list2env(userArgs, environment()))
   cli::cli_alert_success("Starting REMIND found at {remind}")
 
@@ -35,9 +34,7 @@ start <- function(remind = ".", configFile = NULL, restart = FALSE, testOneRegi 
   # Since these options could be defined in the remind .Rprofile, if the working directory is not the remind directory,
   # assume that the R session was not started from the remind folder, and that the .Rprofile hasn't yet been sourced.
   cli::cli_progress_step("Checking global options. Specifically the connection to the input data folders.")
-  if (getwd() != remind) invisible(utils::capture.output(suppressMessages(
-    source(file.path(remind, ".Rprofile"), local = TRUE) # nolint
-  )))
+  if (getwd() != remind) quietly(source(file.path(remind, ".Rprofile"))) # nolint
   checkOptions()
   cli::cli_progress_done()
 

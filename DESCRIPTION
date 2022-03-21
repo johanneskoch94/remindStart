@@ -28,6 +28,7 @@ Imports:
     withr,
     yaml
 Suggests: 
+    mockr,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 URL: https://johanneskoch94.github.io/remindStart/

@@ -1,4 +1,4 @@
-createResultsFolder <- function(cfg){
+createResultsFolder <- function(cfg) {
 
   # Generate name of results folder and create the folder
   date <- format(Sys.time(), "_%Y-%m-%d_%H.%M.%S")
@@ -10,7 +10,7 @@ createResultsFolder <- function(cfg){
     dir.create(cfg$results_folder, recursive = TRUE, showWarnings = FALSE)
     cat("   Creating results folder", cfg$results_folder, "\n")
   } else if (!cfg$force_replace) {
-    stop(paste0("Results folder ", cfg$results_folder," could not be created because it already exists."))
+    stop(paste0("Results folder ", cfg$results_folder, " could not be created because it already exists."))
   } else {
     cat("   Overwriting existing results folder:", cfg$results_folder, "\n")
     unlink(cfg$results_folder, recursive = TRUE)

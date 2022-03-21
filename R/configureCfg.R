@@ -1,25 +1,23 @@
 configureCfg <- function(scen,
-                          gitInfo,
-                          userArgs,
-                          prevScenResultFolders,
-                          slurmConfig = "direct",
-                          job_ids = NULL) {
-
+                         gitInfo,
+                         userArgs,
+                         prevScenResultFolders,
+                         slurmConfig = "direct",
+                         job_ids = NULL) {
   source("config/default.cfg", local = TRUE)
-  cfg$title         <- row.names(scen)
-  cfg$slurmConfig   <- slurmConfig
+  cfg$title <- ifelse(!is.null(row.names(scen)), row.names(scen), "default")
+  cfg$slurmConfig <- slurmConfig
   cfg$remind_folder <- getwd()
-  cfg$gitInfo       <- gitInfo
-  cfg$mock          <- userArgs$mock
-  cfg$logoption     <- 2 # log output written to file
+  cfg$gitInfo <- gitInfo
+  cfg$logoption <- 2 # log output written to file
 
 
   if (userArgs$testOneRegi) {
-    cfg$title            <- 'testOneRegi'
-    cfg$gms$optimization <- 'testOneRegi'
-    cfg$output           <- NA
-    cfg$results_folder   <- 'output/testOneRegi'
-    cfg$force_replace    <- TRUE # delete existing Results directory
+    cfg$title <- "testOneRegi"
+    cfg$gms$optimization <- "testOneRegi"
+    cfg$output <- NA
+    cfg$results_folder <- "output/testOneRegi"
+    cfg$force_replace <- TRUE # delete existing Results directory
   }
 
   # To console
@@ -34,14 +32,14 @@ configureCfg <- function(scen,
   if (!is.null(userArgs$configFile)) {
     # Edit main model file, region settings and input data revision based on scenarios table, if cell non-empty
     for (switchname in intersect(c("model", "regionmapping", "inputRevision"), names(scen))) {
-      if (!is.na(scen[[switchname]] )) {
+      if (!is.na(scen[[switchname]])) {
         cfg[[switchname]] <- scen[[switchname]]
       }
     }
 
     # Set reporting script
     if ("output" %in% names(scen) && !is.na(scen[["output"]])) {
-      cfg$output <- gsub('c\\("|\\)|"', '', strsplit(scen[["output"]], ',')[[1]])
+      cfg$output <- gsub('c\\("|\\)|"', "", strsplit(scen[["output"]], ",")[[1]])
     }
 
     # Edit switches in default.cfg based on scenarios table, if cell non-empty
@@ -51,18 +49,20 @@ configureCfg <- function(scen,
       }
     }
 
-    gdxlist <- c(input.gdx               = scen[["path_gdx"]],
-                 input_ref.gdx           = scen[["path_gdx_ref"]],
-                 input_refpolicycost.gdx = scen[["path_gdx_refpolicycost"]],
-                 input_bau.gdx           = scen[["path_gdx_bau"]],
-                 input_carbonprice.gdx   = scen[["path_gdx_carbonprice"]])
+    gdxlist <- c(
+      input.gdx = scen[["path_gdx"]],
+      input_ref.gdx = scen[["path_gdx_ref"]],
+      input_refpolicycost.gdx = scen[["path_gdx_refpolicycost"]],
+      input_bau.gdx = scen[["path_gdx_bau"]],
+      input_carbonprice.gdx = scen[["path_gdx_carbonprice"]]
+    )
 
     # Drop NAs and add exact path to the fulldata.gdx where necessary
     gdxlistFinal <- NULL
     for (i in seq_along(gdxlist)) {
       if (is.na(gdxlist[i])) {
         next
-      } else if (grepl("\\.gdx$",  gdxlist[i])){
+      } else if (grepl("\\.gdx$", gdxlist[i])) {
         gdxlistFinal <- c(gdxlistFinal, gdxlist[i])
       } else {
         h <- file.path(prevScenResultFolders[gdxlist[[i]]], "fulldata.gdx")

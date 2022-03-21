@@ -130,6 +130,9 @@ abort <- function(x) {
   rlang::abort(glue::glue(x))
 }
 
+quietly <- function(...) {
+  invisible(utils::capture.output(suppressMessages(...)))
+}
 
 # didremindfinish is TRUE if full.log exists with status: Normal completion
 didremindfinish <- function(fulldatapath) {
