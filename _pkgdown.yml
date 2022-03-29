@@ -1,4 +1,5 @@
 url: https://johanneskoch94.github.io/remindStart/
 template:
   bootstrap: 5
-
+  bslib:
+    base_font: {google: "Source Sans Pro"}

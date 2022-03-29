@@ -12,6 +12,8 @@ Start the REMIND Integrated Assessment Model.
 Useful links:
 \itemize{
   \item \url{https://johanneskoch94.github.io/remindStart/}
+  \item \url{https://github.com/johanneskoch94/remindStart}
+  \item Report bugs at \url{https://github.com/johanneskoch94/remindStart/issues}
 }
 
 }

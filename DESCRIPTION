@@ -31,5 +31,6 @@ Suggests:
     mockr,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
-URL: https://johanneskoch94.github.io/remindStart/
+URL: https://johanneskoch94.github.io/remindStart/, https://github.com/johanneskoch94/remindStart
+BugReports: https://github.com/johanneskoch94/remindStart/issues
 Date: 2022-03-11
