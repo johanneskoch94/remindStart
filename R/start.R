@@ -51,7 +51,7 @@ start <- function(remind = ".", configFile = NULL, debug = FALSE, interactive = 
   # is returned.
   if (!is.null(configFile)) {
     cli::cli_progress_step("Reading {configFile}", "Starting REMIND runs configured with: {configFile}")
-    scenarios <- read_scenario_cfg(configFile, debug, interactive, testOneRegi)
+    scenarios <- read_scenario_cfg(configFile, interactive)
     cli::cli_progress_done()
   } else {
     if (! testOneRegi)

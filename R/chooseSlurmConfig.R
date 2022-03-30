@@ -1,6 +1,7 @@
 chooseSlurmConfig <- function(identifier = FALSE) {
-  if (! length(identifier) == 1 || ! identifier %in% paste(seq(1:16))) {
-    wasselected <- TRUE
+  wasUserSelected <- FALSE
+  if (length(identifier) != 1 || ! identifier %in% paste(seq(1:16))) {
+    wasUserSelected <- TRUE
     cat(crayon::yellow("\nPlease choose the SLURM configuration for your submission:\n"))
 
     cat(crayon::yellow("\nCurrent cluster utilization:\n"))
@@ -53,8 +54,8 @@ chooseSlurmConfig <- function(identifier = FALSE) {
     message("This type is invalid. Please choose a valid type!")
     comp <- chooseSlurmConfig()
   }
-  if (! exists("wasselected")) {
-    message("   SLURM option ", identifier, " selected: ", gsub("--", "", comp))
+  if (! wasUserSelected) {
+    message("   SLURM option ", identifier, " used: ", gsub("--", "", comp))
   }
   comp
 }

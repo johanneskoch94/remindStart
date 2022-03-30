@@ -26,7 +26,7 @@ configureCfg <- function(scen,
         cfg[[switchname]] <- scen[[switchname]]
       }
     }
-    if (cfg$slurmConfig %in% paste(seq(1:16))) cfg$slurmConfig <- choose_slurmConfig(identifier = cfg$slurmConfig)
+    if (cfg$slurmConfig %in% paste(seq(1:16))) cfg$slurmConfig <- chooseSlurmConfig(identifier = cfg$slurmConfig)
     if (cfg$slurmConfig %in% c(NA, "")) cfg$slurmConfig <- slurmConfig
 
     # Set description
