@@ -1,36 +1,37 @@
-chooseSlurmConfig <- function() {
-  cat(crayon::yellow("\nPlease choose the SLURM configuration for your submission:\n"))
+chooseSlurmConfig <- function(identifier = FALSE) {
+  if (! length(identifier) == 1 || ! identifier %in% paste(seq(1:16))) {
+    wasselected <- TRUE
+    cat(crayon::yellow("\nPlease choose the SLURM configuration for your submission:\n"))
 
-  cat(crayon::yellow("\nCurrent cluster utilization:\n"))
-  system("sclass")
-  cat("\n")
+    cat(crayon::yellow("\nCurrent cluster utilization:\n"))
+    system("sclass")
+    cat("\n")
 
-  cat(paste0(
-    crayon::yellow("Your options:\n"),
-    crayon::blue("    QOS             tasks per node   suitable for\n"),
-    crayon::blue("=======================================================================\n"),
-    crayon::green(" 1:"), " SLURM standby               12   nash H12             [recommended]\n",
-    crayon::green(" 2:"), " SLURM standby               13   nash H12 coupled\n",
-    crayon::green(" 3:"), " SLURM standby               16   nash H12+\n",
-    crayon::green(" 4:"), " SLURM standby                1   nash debug, testOneRegi, reporting\n",
-    crayon::blue("--------------------------------------------------------------\n"),
-    crayon::green(" 5:"), " SLURM priority              12   nash H12             [recommended]\n",
-    crayon::green(" 6:"), " SLURM priority              13   nash H12 coupled\n",
-    crayon::green(" 7:"), " SLURM priority              16   nash H12+\n",
-    crayon::green(" 8:"), " SLURM priority               1   nash debug, testOneRegi, reporting\n",
-    crayon::blue("--------------------------------------------------------------\n"),
-    crayon::green(" 9:"), " SLURM short                 12   nash H12\n",
-    crayon::green("10:"), " SLURM short                 16   nash H12+\n",
-    crayon::green("11:"), " SLURM short                  1   nash debug, testOneRegi, reporting\n",
-    crayon::green("12:"), " SLURM medium                 1   negishi\n",
-    crayon::green("13:"), " SLURM long                   1   negishi\n",
-    crayon::blue("=======================================================================\n"),
-    crayon::green("Number: ")
-  ))
-
-  identifier <- get_line()
-  identifier <- as.numeric(strsplit(identifier, ",")[[1]])
-  comp <- switch(identifier,
+    cat(paste0(
+      crayon::yellow("Your options:\n"),
+      crayon::blue("    QOS             tasks per node   suitable for\n"),
+      crayon::blue("=======================================================================\n"),
+      crayon::green(" 1:"), " SLURM standby               12   nash H12             [recommended]\n",
+      crayon::green(" 2:"), " SLURM standby               13   nash H12 coupled\n",
+      crayon::green(" 3:"), " SLURM standby               16   nash H12+\n",
+      crayon::green(" 4:"), " SLURM standby                1   nash debug, testOneRegi, reporting\n",
+      crayon::blue("--------------------------------------------------------------\n"),
+      crayon::green(" 5:"), " SLURM priority              12   nash H12             [recommended]\n",
+      crayon::green(" 6:"), " SLURM priority              13   nash H12 coupled\n",
+      crayon::green(" 7:"), " SLURM priority              16   nash H12+\n",
+      crayon::green(" 8:"), " SLURM priority               1   nash debug, testOneRegi, reporting\n",
+      crayon::blue("--------------------------------------------------------------\n"),
+      crayon::green(" 9:"), " SLURM short                 12   nash H12\n",
+      crayon::green("10:"), " SLURM short                 16   nash H12+\n",
+      crayon::green("11:"), " SLURM short                  1   nash debug, testOneRegi, reporting\n",
+      crayon::green("12:"), " SLURM medium                 1   negishi\n",
+      crayon::green("13:"), " SLURM long                   1   negishi\n",
+      crayon::blue("=======================================================================\n"),
+      crayon::green("Number: ")
+    ))
+    identifier <- strsplit(get_line(), ",")[[1]]
+  }
+  comp <- switch(as.numeric(identifier),
     "1" = "--qos=standby --nodes=1 --tasks-per-node=12", # SLURM standby  - task per node: 12 (nash H12) [recommended]
     "2" = "--qos=standby --nodes=1 --tasks-per-node=13", # SLURM standby  - task per node: 13 (nash H12 coupled)
     "3" = "--qos=standby --nodes=1 --tasks-per-node=16", # SLURM standby  - task per node: 16 (nash H12+)
@@ -48,11 +49,13 @@ chooseSlurmConfig <- function() {
     "15" = "--qos=medium --nodes=1 --tasks-per-node=16", # SLURM medium   - task per node: 16 (nash long calibration)
     "16" = "direct"
   )
-
   if (is.null(comp)) {
-    stop("This type is invalid. Please choose a valid type")
+    message("This type is invalid. Please choose a valid type!")
+    comp <- chooseSlurmConfig()
   }
-
+  if (! exists("wasselected")) {
+    message("   SLURM option ", identifier, " selected: ", gsub("--", "", comp))
+  }
   comp
 }
 

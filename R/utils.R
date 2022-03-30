@@ -71,6 +71,47 @@ copyFromList <- function(filelist, destfolder) {
   }
 }
 
+chooseFromList <- function(thelist, type = "runs", returnboolean = FALSE) {
+  booleanlist <- numeric(length(thelist)) # set to zero
+  thelist <- c("all", thelist)
+  message("\n\nPlease choose ", type,":\n\n")
+  message(paste(paste(1:length(thelist), thelist, sep=": " ), collapse="\n"))
+  message(paste(length(thelist)+1, "Search by pattern...", sep=": "))
+  message("\nNumber: ")
+  identifier <- strsplit(get_line(), ",")[[1]]
+  tmp <- NULL
+  for (i in 1:length(identifier)) { # turns 2:5 into 2,3,4,5
+    if (length(strsplit(identifier,":")[[i]]) > 1) tmp <- c(tmp,as.numeric(strsplit(identifier,":")[[i]])[1]:as.numeric(strsplit(identifier,":")[[i]])[2])
+    else tmp <- c(tmp,as.numeric(identifier[i]))
+  }
+  identifier <- tmp
+  if (any(! identifier %in% seq(length(thelist)+1))) {
+    message("Try again, invalid choice: ", identifier)
+    return(chooseFromList(thelist[-1], type, returnboolean))
+  }
+  # PATTERN
+  if(length(identifier == 1) && identifier == (length(thelist)+1)){
+    message("\nInsert the search pattern or the regular expression: ")
+    pattern <- get_line()
+    id <- grep(pattern=pattern, thelist[-1])
+    # lists all chosen and ask for the confirmation of the made choice
+    message("\n\nYou have chosen the following ", type, ":")
+    message(paste(paste(1:length(id), thelist[id+1], sep=": "), collapse="\n"))
+    message("\nAre you sure these are the right ", type, "? (y/n): ")
+    if(get_line() == "y"){
+      identifier <- id+1
+      booleanlist[id] <- 1
+    } else {
+      return(chooseFromList(thelist[-1], type, returnboolean))
+    }
+  } else if(any(thelist[identifier] == "all")){
+    booleanlist[] <- 1
+    identifier <- 2:length(thelist)
+  } else {
+    booleanlist[identifier-1] <- 1
+  }
+  if (returnboolean) return(booleanlist) else return(thelist[identifier])
+}
 
 slurmIsAvailable <- function() {
   suppressWarnings(ifelse(system2("srun", stdout = FALSE, stderr = FALSE) != 127, TRUE, FALSE))
