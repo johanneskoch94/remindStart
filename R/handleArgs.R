@@ -6,6 +6,15 @@ handleArgs <- function(remind, configFile, debug, interactive, restart, test, te
     # conflict with command-line arguments, throw an error.
     # Remove --args (i.e. the flag to signal that what comes after are the arguments)
     a <- a[a != "--args"]
+    # define arguments that are accepted with their shortcuts
+    accepted <- c("1" = "--testOneRegi", d = "--debug", i = "--interactive", r = "--restart", R = "--reprepare", t = "--test")
+    # search for strings that look like -i1asrR and transform them into long flags
+    onedashflags <- unlist(strsplit(paste0(a[grepl("^-[a-zA-Z0-9]*$", a)], collapse = ""), split = ""))
+    a <- unique(c(a[! grepl("^-[a-zA-Z0-9]*$", a)], unlist(accepted[names(accepted) %in% onedashflags])))
+    if (sum(! onedashflags %in% c(names(accepted), "-")) > 0) {
+      abort("User error: Unknown single character flags: ", onedashflags[! onedashflags %in% c(names(accepted), "-")],
+           ". Only available: ", paste0("-", names(accepted), collapse = ", ") )
+    }
     for (i in a) {
       if (i == "--testOneRegi") testOneRegi <- TRUE
       else if (i == "--test") test <- TRUE

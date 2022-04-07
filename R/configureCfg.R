@@ -48,6 +48,9 @@ configureCfg <- function(scen,
       }
     }
 
+    if (userArgs$debug) {
+      cfg$slurmConfig       <- slurmConfig
+    }
 
     if (userArgs$testOneRegi) {
       cfg$gms$optimization  <- "testOneRegi"
