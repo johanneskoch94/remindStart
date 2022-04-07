@@ -71,6 +71,86 @@ copyFromList <- function(filelist, destfolder) {
   }
 }
 
+### chooseFromList
+# @param thelist: list to be selected from
+# @param group: list with same dimension as thelist with group names to allow to select whole groups
+# @param returnboolean: TRUE: returns list with dimension of thelist with 0 or 1. FALSE: returns selected entries of thelist
+# @param multiple: TRUE: allows to select multiple entries. FALSE: no
+# @param allowempty: TRUE: allows you not to select anything (returns NA). FALSE: must select something
+# @param type: string to be shown to user to understand what he chooses
+
+chooseFromList <- function(thelist, type = "runs", returnboolean = FALSE, multiple = TRUE,
+                           allowempty = FALSE, group = FALSE) {
+  originallist <- thelist
+  booleanlist <- numeric(length(originallist)) # set to zero
+  if (! isFALSE(group) && (length(group) != length(originallist) | isFALSE(multiple))) {
+    message("group must have same dimension as thelist, or multiple not allowed. Group mode disabled")
+    group <- FALSE
+  }
+  message("\n\nPlease choose ", type,":\n\n")
+  if (! isFALSE(group)) {
+    groups <- sort(unique(group))
+    groupsids <- seq(length(originallist)+2, length(originallist)+length(groups)+1)
+    thelist <- c(paste0(str_pad(thelist, max(nchar(originallist)), side = "right"), " ", group), paste("Group:", groups))
+    message(str_pad("", max(nchar(originallist)) + nchar(length(thelist)+2)+2, side = "right"), " Group")
+  }
+  if(multiple)   thelist <- c("all", thelist, "Search by pattern...")
+  message(paste(paste(str_pad(1:length(thelist), nchar(length(thelist)), side = "left"), thelist, sep=": " ), collapse="\n"))
+  message("\nNumber", ifelse(multiple,"s entered as 2,4:6,9",""),
+          ifelse(allowempty, " or leave empty", ""), " (", type, "): ")
+  identifier <- strsplit(get_line(), ",")[[1]]
+  if (allowempty & length(identifier) == 0) return(NA)
+  if (length(identifier) == 0 | ! all(grepl("^[0-9,:]*$", identifier))) {
+    message("Try again, you have to choose some numbers.")
+    return(chooseFromList(originallist, type, returnboolean, multiple, allowempty, group))
+  }
+  tmp <- NULL
+  for (i in 1:length(identifier)) { # turns 2:5 into 2,3,4,5
+    if (length(strsplit(identifier,":")[[i]]) > 1) {
+      tmp <- c(tmp,as.numeric(strsplit(identifier,":")[[i]])[1]:as.numeric(strsplit(identifier,":")[[i]])[2])
+    }
+    else {
+      tmp <- c(tmp,as.numeric(identifier[i]))
+    }
+  }
+  identifier <- tmp
+  if (! multiple & length(identifier) > 1) {
+    message("Try again, not in list or multiple chosen: ", paste(identifier, collapse = ", "))
+    return(chooseFromList(originallist, type, returnboolean, multiple, allowempty, group))
+  }
+  if (any(! identifier %in% seq(length(thelist)))) {
+    message("Try again, not all in list: ", paste(identifier, collapse = ", "))
+    return(chooseFromList(originallist, type, returnboolean, multiple, allowempty, group))
+  }
+  if (! isFALSE(group)) {
+    selectedgroups <- sub("^Group: ", "", thelist[intersect(identifier, groupsids)])
+    identifier <- unique(c(identifier[! identifier %in% groupsids], which(group %in% selectedgroups)+1))
+  }
+  # PATTERN
+  if(multiple && length(identifier == 1) && identifier == length(thelist) ){
+    message("\nInsert the search pattern or the regular expression: ")
+    pattern <- get_line()
+    id <- grep(pattern=pattern, originallist)
+    # lists all chosen and ask for the confirmation of the made choice
+    message("\n\nYou have chosen the following ", type, ":")
+    if (length(id) > 0) message(paste(paste(1:length(id), originallist[id], sep=": "), collapse="\n"))
+    message("\nAre you sure these are the right ", type, "? (y/n): ")
+    if(get_line() == "y"){
+      identifier <- id
+      booleanlist[id] <- 1
+    } else {
+      return(chooseFromList(originallist, type, returnboolean, multiple, allowempty, group))
+    }
+  } else if(any(thelist[identifier] == "all")){
+    booleanlist[] <- 1
+    identifier <- 1:length(originallist)
+  } else {
+    if (multiple) identifier <- identifier - 1
+    booleanlist[identifier] <- 1
+  }
+  if (returnboolean) return(booleanlist) else return(originallist[identifier])
+}
+
 
 slurmIsAvailable <- function() {
   suppressWarnings(ifelse(system2("srun", stdout = FALSE, stderr = FALSE) != 127, TRUE, FALSE))

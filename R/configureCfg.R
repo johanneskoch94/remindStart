@@ -6,19 +6,9 @@ configureCfg <- function(scen,
                          job_ids = NULL) {
   source("config/default.cfg", local = TRUE)
   cfg$title <- ifelse(!is.null(row.names(scen)), row.names(scen), "default")
-  cfg$slurmConfig <- slurmConfig
   cfg$remind_folder <- getwd()
   cfg$gitInfo <- gitInfo
   cfg$logoption <- 2 # log output written to file
-
-
-  if (userArgs$testOneRegi) {
-    cfg$title <- "testOneRegi"
-    cfg$gms$optimization <- "testOneRegi"
-    cfg$output <- NA
-    cfg$results_folder <- "output/testOneRegi"
-    cfg$force_replace <- TRUE # delete existing Results directory
-  }
 
   # To console
   cat("\n", crayon::green(cfg$title), "\n")
@@ -31,10 +21,19 @@ configureCfg <- function(scen,
   # Configure cfg based on settings from csv if provided
   if (!is.null(userArgs$configFile)) {
     # Edit main model file, region settings and input data revision based on scenarios table, if cell non-empty
-    for (switchname in intersect(c("model", "regionmapping", "inputRevision"), names(scen))) {
+    for (switchname in intersect(c("model", "regionmapping", "inputRevision", "slurmConfig"), names(scen))) {
       if (!is.na(scen[[switchname]])) {
         cfg[[switchname]] <- scen[[switchname]]
       }
+    }
+    if (cfg$slurmConfig %in% paste(seq(1:16))) cfg$slurmConfig <- chooseSlurmConfig(identifier = cfg$slurmConfig)
+    if (cfg$slurmConfig %in% c(NA, "")) cfg$slurmConfig <- slurmConfig
+
+    # Set description
+    if ("description" %in% names(scen) && ! is.na(scen[["description"]])) {
+      cfg$description <- gsub('"', '', scen[["description"]])
+    } else {
+      cfg$description <- paste0("REMIND run ", scen, " started by ", config.file, ".")
     }
 
     # Set reporting script
@@ -48,6 +47,25 @@ configureCfg <- function(scen,
         cfg$gms[[switchname]] <- scen[[switchname]]
       }
     }
+
+    if (userArgs$debug) {
+      cfg$slurmConfig       <- slurmConfig
+    }
+
+    if (userArgs$testOneRegi) {
+      cfg$gms$optimization  <- "testOneRegi"
+      cfg$output            <- NA
+      cfg$description       <- paste("testOneRegi:", cfg$description)
+      cfg$slurmConfig       <- slurmConfig
+      if(is.null(userArgs$configFile)) {
+        cfg$title <- "testOneRegi"
+        cfg$results_folder  <- "output/testOneRegi"
+        cfg$force_replace   <- TRUE # delete existing Results directory
+        cfg$description     <- "A REMIND run using testOneRegi"
+      }
+    }
+
+    if (userArgs$debug) cfg$gms$cm_nash_mode <- "debug"
 
     gdxlist <- c(
       input.gdx = scen[["path_gdx"]],

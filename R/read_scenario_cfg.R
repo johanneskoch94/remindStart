@@ -1,4 +1,4 @@
-read_scenario_cfg <- function(configFile, default.cfg = file.path(dirname(configFile), "default.cfg")) {
+read_scenario_cfg <- function(configFile, default.cfg = file.path(dirname(configFile), "default.cfg"), interactive = FALSE) {
   # Read-in the switches table, use first column as row names
   settings <- utils::read.csv2(configFile, stringsAsFactors = FALSE, row.names = 1, comment.char = "#", na.strings = "")
 
@@ -34,6 +34,7 @@ read_scenario_cfg <- function(configFile, default.cfg = file.path(dirname(config
   }
 
   # Perform checks on scenarios that are flagged to start
+  if(interactive) settings$start <- chooseFromList(rownames(settings), type = "runs", returnboolean = TRUE)
   scenarios <- settings[settings$start == 1, ]
 
   # Make sure scenario names don't includes a "."

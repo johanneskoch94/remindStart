@@ -7,6 +7,9 @@
 #' @param configFile NULL or a character vector with the path to a scenario config csv file.
 #' @param restart TRUE or FALSE
 #' @param testOneRegi TRUE or FALSE
+#' @param debug TRUE or FALSE
+#' @param test TRUE or FALSE
+#' @param interactive TRUE or FALSE
 #'
 #' @export
 #'
@@ -23,10 +26,10 @@
 #' # Start from the command line
 #' Rscript -e "remindStart::start()" --args config/my_config.csv
 #' }
-start <- function(remind = ".", configFile = NULL, restart = FALSE, testOneRegi = FALSE) {
+start <- function(remind = ".", configFile = NULL, debug = FALSE, interactive = FALSE, restart = FALSE, test = FALSE, testOneRegi = FALSE) {
   # Take into account that this function may be called from the command-line directly, and that the command-line
   # arguments may overwrite the default/given function arguments.
-  userArgs <- handleArgs(normalizePath(remind), configFile, restart, testOneRegi)
+  userArgs <- handleArgs(normalizePath(remind), configFile, debug, interactive, restart, test, testOneRegi)
   invisible(list2env(userArgs, environment()))
   cli::cli_alert_success("Starting REMIND found at {remind}")
 
@@ -40,7 +43,7 @@ start <- function(remind = ".", configFile = NULL, restart = FALSE, testOneRegi 
 
   # If desired, restart existing REMIND runs. Then stop quietly.
   if (restart) {
-    restartRemind(remind)
+    restartRemind(remind, debug, test, testOneRegi)
     withr::with_options(list(show.error.messages = FALSE), stop())
   }
 
@@ -48,10 +51,13 @@ start <- function(remind = ".", configFile = NULL, restart = FALSE, testOneRegi 
   # is returned.
   if (!is.null(configFile)) {
     cli::cli_progress_step("Reading {configFile}", "Starting REMIND runs configured with: {configFile}")
-    scenarios <- read_scenario_cfg(configFile)
+    scenarios <- read_scenario_cfg(configFile, interactive)
     cli::cli_progress_done()
   } else {
-    scenarios <- data.frame("default" = "default", row.names = "default")
+    if (! testOneRegi)
+      scenarios <- data.frame("testOneRegi" = "testOneRegi", row.names = "testOneRegi")
+    else
+      scenarios <- data.frame("default" = "default", row.names = "default")
     cli::cli_alert_success("Starting REMIND run configured with: {remind}/config/default.cfg")
   }
 
@@ -65,12 +71,15 @@ start <- function(remind = ".", configFile = NULL, restart = FALSE, testOneRegi 
   cli::cli_progress_done()
 
   # If possible, submit scenarios to SLURM. Otherwise run sequentially in active R-session.
-  if (slurmIsAvailable()) {
-    cli::cli_alert_info("Submitting runs to slurm:")
-    submitScenariosToSlurm(userArgs, scenarios, gitInfo, baseCopy)
-  } else {
-    cli::cli_alert_info("Running remind.")
-    runLocally(userArgs, scenarios, gitInfo, baseCopy)
-    unlink(baseCopy, recursive = TRUE)
+  if (test) cli::cli_alert_info("If this wasn't --test mode, I would start/submit the model now.")
+  else {
+    if (slurmIsAvailable()) {
+      cli::cli_alert_info("Submitting runs to slurm:")
+      submitScenariosToSlurm(userArgs, scenarios, gitInfo, baseCopy)
+    } else {
+      cli::cli_alert_info("Running remind.")
+      runLocally(userArgs, scenarios, gitInfo, baseCopy)
+      unlink(baseCopy, recursive = TRUE)
+    }
   }
 }
