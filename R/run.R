@@ -8,7 +8,7 @@ run <- function() {
   # Display git information in log
   cat(cfg$gitInfo$info_str, "\n")
 
-  # De-compress finxing files if they have already been zipped (only valid if run is restarted)
+  # De-compress fixing files if they have already been zipped (only valid if run is restarted)
   if (cfg$gms$cm_startyear > 2005) {
     if (file.exists("levs.gms.gz")) {
       cat("Unzip fixing files\n")
