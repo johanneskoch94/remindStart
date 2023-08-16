@@ -21,6 +21,7 @@ Imports:
     madrat,
     magclass,
     magrittr,
+    purrr,
     R.utils,
     remind2,
     rlang,
