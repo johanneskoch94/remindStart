@@ -4,7 +4,7 @@ configureCfg <- function(scen,
                          prevScenResultFolders,
                          slurmConfig = "direct",
                          job_ids = NULL) {
-  source("config/default.cfg", local = TRUE)
+  cfg <- gms::readDefaultConfig(getwd())
   cfg$title <- ifelse(!is.null(row.names(scen)), row.names(scen), "default")
   cfg$slurmConfig <- slurmConfig
   cfg$remind_folder <- getwd()
@@ -91,8 +91,8 @@ configureCfg <- function(scen,
     "GDP_", cfg$gms$cm_GDPscen, "-",
     "En_", cfg$gms$cm_demScen, "-",
     "Kap_", cfg$gms$capitalMarket, "-",
-    if (cfg$gms$cm_calibration_string == "off") "" else paste0(cfg$gms$cm_calibration_string, "-"),
-    "Reg_", cfg$regionscode
+    if (cfg$gms$cm_calibration_string != "off") paste0(cfg$gms$cm_calibration_string, "-"),
+    "Reg_",cfg$regionscode
   )
 
   if (slurmConfig != "direct" && !is.null(userArgs$configFile)) {

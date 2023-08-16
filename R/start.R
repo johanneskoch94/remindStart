@@ -34,8 +34,8 @@ start <- function(remind = ".", configFile = NULL, restart = FALSE, testOneRegi 
   # Since these options could be defined in the remind .Rprofile, if the working directory is not the remind directory,
   # assume that the R session was not started from the remind folder, and that the .Rprofile hasn't yet been sourced.
   cli::cli_progress_step("Checking global options. Specifically the connection to the input data folders.")
-  if (getwd() != remind) quietly(source(file.path(remind, ".Rprofile"))) # nolint
-  checkOptions()
+  if (getwd() != remind) purrr::quietly(source(file.path(remind, ".Rprofile"))) # nolint
+  # checkOptions()
   cli::cli_progress_done()
 
   # If desired, restart existing REMIND runs. Then stop quietly.
