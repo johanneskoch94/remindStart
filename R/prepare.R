@@ -5,8 +5,8 @@ prepare <- function() {
   # Start timer
   timePrepareStart <- Sys.time()
 
-  # Load and check configuration for consistency
-  cfg <- loadAndCheckCfg("config.Rdata")
+  cfg <- NULL
+  load("config.Rdata")
 
   # Display git information in log
   cat(cfg$gitInfo$info_str)

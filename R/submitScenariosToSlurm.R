@@ -86,7 +86,7 @@ submitRemindRun <- function(cfg, waitFor = NULL) {
     cfg$title,
     dependency,
     " --kill-on-invalid-dep=yes --output=log.txt --mail-type=END --parsable ",
-    "--comment=REMIND --wrap=\"Rscript --no-site-file -e 'remindStart:::run()' \" ",
+    "--comment=REMIND --wrap=\"Rscript -e 'remindStart:::run()' \" ",
     cfg$slurmConfig
   ),
   intern = TRUE
