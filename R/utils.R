@@ -31,9 +31,11 @@ getGitInfo <- function(remind) {
   gitInfo$status <- try(system("git status -uno", intern = TRUE), silent = TRUE)
   gitInfo$commit <- try(system("git rev-parse --short HEAD", intern = TRUE), silent = TRUE)
   gitInfo$info_str <- paste0("\n##### git info #####\n",
-                             "Latest commit: ",
+                             "Latest tag: ",
+                             try(system("git describe --tags", intern = TRUE), silent = TRUE),
+                             "\nLatest commit: ",
                              try(system("git show -s --format='%h %ci %cn'", intern = TRUE), silent = TRUE),
-                             "\nChanges since then: ",
+                             "\n\nChanges since then: ",
                              paste(gitInfo$status, collapse = "\n"),
                              "\n####################\n\n")
   gitInfo
