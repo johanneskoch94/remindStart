@@ -77,28 +77,51 @@ slurmIsAvailable <- function() {
 }
 
 createTmpBaseCopy <- function(remind, scenarios) {
-  base_copy <- paste0(file.path(dirname(remind), "tmp_remind_base"), format(Sys.time(), "_%Y-%m-%d_%H.%M.%S"), "/")
+  base_copy <- paste0(file.path(dirname(remind), "tmp_remind_base"), format(Sys.time(), "_%Y-%m-%d_%H.%M.%S"))
 
-  copyRemind(from = remind,
-             to = base_copy,
-             exclude = c("output/", "tutorials/", ".git/", "doc/"),
-             include = "scripts/output/")
+  folder.copy(from = remind,
+              to = base_copy,
+              exclude = c("output/", "tutorials/", ".git/", "doc/"),
+              include = "scripts/output/")
+
+  # Setup renv in base copy
+  if (getOption("autoRenvUpdates", FALSE)) {
+    installedUpdates <- piamenv::updateRenv()
+    piamenv::stopIfLoaded(names(installedUpdates))
+  } else if ('TRUE' != Sys.getenv('ignoreRenvUpdates') && !is.null(piamenv::showUpdates())) {
+    cli::cli_inform("Consider updating with `make update-renv`.")
+  }
+
+  cli::cli_progress_step("Running renv::snapshot().")
+  ## Suppress output of renv::snapshot
+  utils::capture.output({
+    errorMessage <- utils::capture.output({
+      snapshotSuccess <- tryCatch({
+        ## Snapshot current main renv into run folder
+        renv::snapshot(lockfile = file.path(base_copy, "renv.lock"), prompt = FALSE, force = TRUE)
+        TRUE
+      }, error = function(error) FALSE)
+    }, type = "message")
+  })
+  if (!snapshotSuccess) {
+    stop(paste(errorMessage, collapse = "\n"))
+  }
+  cli::cli_progress_done()
 
   # If start gdxs are given, then make sure they're copied as well
   if (!identical(row.names(scenarios), "default")) {
     path_gdx_list <- c("path_gdx", "path_gdx_ref", "path_gdx_refpolicycost", "path_gdx_bau", "path_gdx_carbonprice")
     start_gdxs <- unique(grep("\\.gdx$", scenarios[, path_gdx_list], value = TRUE))
-    if (length(start_gdxs) != 0) lapply(start_gdxs, function(x) system(paste0("rsync -a -W --inplace -R ", x, " ", base_copy)))
+    if (length(start_gdxs) != 0) {
+      lapply(start_gdxs, function(x) system(paste0("rsync -a -W --inplace -R ", x, " ", base_copy)))
+    }
   }
 
   base_copy
 }
 
-# Copy the remind folder using the rsync command, excluding certain directories
-copyRemind <- function(from,
-                       to,
-                       exclude = NULL,
-                       include = NULL) {
+# Copy a folder using the rsync command, excluding certain directories
+folder.copy <- function(from, to, exclude = NULL, include = NULL) {
   # (-a -> copy eveything. -W and --inplace -> do it fast because we're copying locally)
   rsync_cmd <- paste0("rsync -a -W --inplace ", from, "/ ", to, "/ ")
 

@@ -15,7 +15,7 @@ prepare <- function() {
   runCopy <- paste0(
     dirname(cfg$remind_folder), "/tmp_remind_", cfg$title, format(Sys.time(), "_%Y-%m-%d_%H.%M.%S"), "/"
   )
-  copyRemind(from = cfg$remind_folder, to = runCopy)
+  folder.copy(from = cfg$remind_folder, to = runCopy)
   prepareRemind(cfg, runCopy)
   prepareMagicc(cfg, runCopy)
   system(paste0("rm -rf ", runCopy))

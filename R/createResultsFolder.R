@@ -18,21 +18,10 @@ createResultsFolder <- function(cfg) {
   }
 
   # Setup renv in result folder
-  cat("   Copying renv lockfile into '", cfg$results_folder, "'")
-  file.copy(renv::paths$lockfile(), file.path(cfg$results_folder, "_renv.lock"))
-  renvLogPath <- file.path(cfg$results_folder, "log_renv.txt")
-  cat("   Initializing renv, see ", renvLogPath)
-  createResultsfolderRenv <- function() {
-    renv::init() # will overwrite renv.lock if existing...
-    file.rename("_renv.lock", "renv.lock") # so we need this rename
-    renv::restore(prompt = FALSE)
-  }
-  # Init renv in a separate session so the libPaths of the current session remain unchanged
-  callr::r(createResultsfolderRenv,
-           wd = cfg$results_folder,
-           env = c(RENV_PATHS_LIBRARY = "renv/library"),
-           stdout = renvLogPath,
-           stderr = "2>&1")
+  folder.copy(from = "renv", to = file.path(cfg$results_folder, "renv"))
+  # Ignore .venv for now
+  dir.create(file.path(cfg$results_folder, ".venv"))
+
 
   # Copy requirements.txt file for python setup
   file.copy("requirements.txt", file.path(cfg$results_folder, "requirements.txt"))
