@@ -34,6 +34,9 @@ createResultsFolder <- function(cfg) {
            stdout = renvLogPath,
            stderr = "2>&1")
 
+  # Copy requirements.txt file for python setup
+  file.copy("requirements.txt", file.path(cfg$results_folder, "requirements.txt"))
+
   # Save the cfg (with the updated name of the result folder) into the results folder.
   # Do not save the new name of the results folder to the .RData file in REMINDs main folder, because it
   # might be needed to restart subsequent runs manually and should not contain the time stamp in this case.
